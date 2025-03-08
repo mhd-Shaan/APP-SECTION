@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom"; // Import Link for navigation
 import { TextField, Button, Typography, Container, Paper, Box, Grid, Modal, Backdrop, Fade } from "@mui/material";
+import {toast} from 'react-hot-toast'
 
 function UserRegister() {
   const [data, setData] = useState({
@@ -20,7 +21,7 @@ const register =async(data)=>{
   try {
     const res = await axios.post("http://localhost:5000/registeruser", data);
     if (res.status === 200) {
-      alert(res.data.msg || "OTP sent to your email");
+      toast.success(res.data.msg || "OTP sent to your email");
       setRegistrationData(data); // Save registration data for OTP verification
       setShowOtpModal(true); // Show OTP modal
     }   
@@ -28,7 +29,7 @@ const register =async(data)=>{
    
   } catch (error) {    
     console.error("Error during registration:", error);
-    alert(error.response?.data?.error || "Failed to register");
+    toast.error(error.response?.data?.error || "Failed to register");
   }
 }
 
@@ -41,11 +42,11 @@ const verifyOtp = async ()=>{
     })
 
     if(res.status === 201){
-      alert('registrarion succesfully');
+      toast.success('registrarion succesfully');
       navigate('/login')
     }
   } catch (error) {
-    alert(error.response.data.error)
+    toast.error(error.response.data.error)
     console.log(error.response.data.error);
     
   }

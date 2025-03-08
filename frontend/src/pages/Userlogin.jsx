@@ -5,6 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom"; // Import Link for navigation
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginuser } from "@/redux/userslice";
+import {toast} from 'react-hot-toast'
 
 const UserLogin = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +16,7 @@ const UserLogin = () => {
   });
 
   const navigate = useNavigate()
+const dispatch = useDispatch()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,11 +27,12 @@ const UserLogin = () => {
  const {email,password} =formData
   try {
     const response = await axios.post("http://localhost:5000/loginusers",{email,password},{withCredentials:true})
-   alert('welcome back')
+   toast.success('welcome back')
    console.log(response.data);
+   dispatch(loginuser(response.data))
      navigate('/home'); // ✅ Redirect after successful login
   } catch (error) {
-    alert(error.response.data.error)
+    toast.error(error.response.data.error)
     console.log(error)
   }
 

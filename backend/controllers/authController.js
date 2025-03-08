@@ -34,7 +34,7 @@ export const registerUser = async (req, res) => {
       await OTPVerification.deleteOne({ email });
     }
 
-    await sendOTP(email);
+    await sendOTP(email, "user");
 
     const hashedPassword = await hashPassword(password);
     const tempuser = await Tempusers.create({ email, name,password:hashedPassword });
@@ -53,7 +53,6 @@ export const verifyOTP = async (req, res) => {
 
     if (!email) return  res.status(400).json({ error: "email is required" });
     if (!otp) return  res.status(400).json({ error: "otp is required" });
-
 
     // Find user by email
     const otpRecord = await OTPVerification.findOne({ email });
@@ -123,7 +122,8 @@ export const loginUsers = async (req,res)=>{
           id: user._id,
           name: user.name,
           email: user.email,
-      }
+      },
+      token,
   });
   })
   
@@ -135,3 +135,13 @@ export const loginUsers = async (req,res)=>{
   }
 
 }
+
+export const checkAuth = (req, res) => {
+  try {
+    console.log("controll", req.User);
+    res.status(200).json(req.User);
+  } catch (error) {
+    console.log("error from checkAuth", error.message);
+    res.status(500).json({ msg: error.message });
+  }
+};

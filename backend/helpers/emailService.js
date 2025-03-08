@@ -2,11 +2,14 @@ import nodemailer from "nodemailer";
 import crypto from "crypto";
 import OtpVerification from '../models/otpschema.js'
 
-export const sendOTP = async (email) => {
-  const otp = crypto.randomInt(100000, 999999).toString(); // Generate 6-digit OTP
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Expires in 10 mins
+export const sendOTP = async (email, type) => {
+  if (!email) throw new Error("Email is required");
+  if (!type) throw new Error("OTP type is required (user/store)");
 
-  await OtpVerification.create({ email, otp, expiresAt });
+  const otp = crypto.randomInt(100000, 999999).toString(); // Generate 6-digit OTP
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
+
+  await OtpVerification.create({ email, otp, type, expiresAt }); // Make sure type is saved
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -25,3 +28,4 @@ export const sendOTP = async (email) => {
 
   return { message: "OTP sent to email" };
 };
+

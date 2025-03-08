@@ -24,6 +24,9 @@ const hashPassword =(password)=>{
 const comparePassword = (password,hashed) =>{
     return compare(password,hashed)
 }
+const compareMobileNumber = (inputMobile, storedMobile) => {
+    return inputMobile === storedMobile;
+};
 
 
 // const authenticate = (req, res, next) => {
@@ -51,5 +54,6 @@ const comparePassword = (password,hashed) =>{
 export default{
     hashPassword,
     comparePassword,
+    compareMobileNumber,
     // authenticate
 }

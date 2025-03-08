@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import authRoutes from './routes/authRoutes.js'
 import cookieParser from "cookie-parser";
+import storeRoutes from './routes/storeRoutes.js'
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 app.use('/',authRoutes)
+app.use("/store", storeRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI, {})

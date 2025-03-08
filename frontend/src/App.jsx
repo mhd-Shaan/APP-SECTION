@@ -1,27 +1,44 @@
-import Home from './pages/Home'
+import React, { use, useEffect } from "react";
+import Home from "./pages/Home";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import UserRegister from './pages/UserRegister';
-import Userlogin from './pages/Userlogin';
-import Stores from './pages/Stores';
-import Home1 from './pages/Home1';
+import UserRegister from "./pages/UserRegister";
+import Userlogin from "./pages/Userlogin";
+import Stores from "./pages/Stores";
+import Home1 from "./pages/Home1";
+import useCheckAuth from "./hooks/useCheckAuth"; // ✅ Fixed Hook Name
+import { useSelector } from "react-redux";
+import { Toaster } from "react-hot-toast";
+
 function App() {
+  const { loading } = useCheckAuth(); // ✅ Hook now returns loading
+  const { user } = useSelector((state) => state.user);
+
+ 
+
+console.log(user);
+
+
+  if (loading) {
+    return <h1>Loading...</h1>; // ✅ Prevent rendering until auth check completes
+  }
 
   return (
-    
     <>
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Userlogin />} />
-        <Route path="/register" element={<UserRegister />} />
-        <Route path="/stores" element={<Stores />} />
-        <Route path="/home" element={<Home1/>} />
-
-      </Routes>
-    </Router>
-
-       </>
-  )
+          <Toaster position="top-right" reverseOrder={false} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={user ? <Home/>:<Userlogin />} />
+          <Route path="/register" element={user ? <Home/>:<UserRegister />} />
+          <Route path="/stores" element={<Stores />} />
+          <Route
+            path="/home"
+            element={user  ? <Home /> : <Userlogin />}
+          />
+        </Routes>
+      </Router>
+    </>
+  );
 }
 
-export default App
+export default App;
