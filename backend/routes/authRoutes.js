@@ -1,7 +1,6 @@
 import express from 'express';
 import {registerUser,verifyOTP,loginUsers,checkAuth} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
-import { StoreRegestration1 } from '../controllers/storeController.js';
 
 const router = express.Router();
 
