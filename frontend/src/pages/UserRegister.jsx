@@ -1,150 +1,133 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom"; // Import Link for navigation
-import { TextField, Button, Typography, Container, Paper, Box, Grid, Modal, Backdrop, Fade } from "@mui/material";
-import {toast} from 'react-hot-toast'
+import { toast } from "react-hot-toast";
+import {
+  Button,
+  CssBaseline,
+  TextField,
+  Grid,
+  Box,
+  Typography,
+  Container,
+  Paper,
+  Modal,
+  Backdrop,
+  Fade,
+} from "@mui/material";
 
-function UserRegister() {
-  const [data, setData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [showOtpModal, setShowOtpModal] = useState(false); // Controls OTP modal visibility
-  const [registrationData, setRegistrationData] = useState(null); // Stores registration data for OTP verification
-  const [otp, setOtp] = useState(new Array(6).fill("")); // OTP input state
-
+export default function UserRegister() {
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [registrationData, setRegistrationData] = useState(null);
+  const [otp, setOtp] = useState(new Array(6).fill(""));
   const navigate = useNavigate();
 
-const register =async(data)=>{
-  try {
-    const res = await axios.post("http://localhost:5000/registeruser", data);
-    if (res.status === 200) {
-      toast.success(res.data.msg || "OTP sent to your email");
-      setRegistrationData(data); // Save registration data for OTP verification
-      setShowOtpModal(true); // Show OTP modal
-    }   
-
-   
-  } catch (error) {    
-    console.error("Error during registration:", error);
-    toast.error(error.response?.data?.error || "Failed to register");
-  }
-}
-
-const verifyOtp = async ()=>{
-  const otpValue = otp.join("")
-  try {
-    const res = await axios.post("http://localhost:5000/verify-otp",{
-      ...registrationData,
-      otp:otpValue,
-    })
-
-    if(res.status === 201){
-      toast.success('registrarion succesfully');
-      navigate('/login')
-    }
-  } catch (error) {
-    toast.error(error.response.data.error)
-    console.log(error.response.data.error);
-    
-  }
-}
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    register(data)
-  
-  }
-  const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    if (value && index < otp.length - 1) {
-      document.getElementById(`otp-input-${index + 1}`).focus();
-    }
-  }
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      document.getElementById(`otp-input-${index - 1}`).focus();
+    try {
+      const res = await axios.post("http://localhost:5000/registeruser", formData);
+      toast.success(res.data.msg || "OTP sent to your email");
+      setRegistrationData(formData);
+      setShowOtpModal(true);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Failed to register");
     }
   };
-  return (
-    <div className="flex min-h-screen bg-gray-100">
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6">
-        <div className="w-full max-w-md p-6 bg-white rounded-2xl shadow-lg">
-          <h2 className="text-3xl font-bold text-center text-gray-700 mb-4">
-            Create an Account
-          </h2>
-          <p className="text-center text-gray-500 mb-6">
-            Sign up to start using our platform.
-          </p>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-medium mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your full name"
-                onChange={(e) => setData({ ...data, name: e.target.value })}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-medium mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your email"
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-medium mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your password"
-                onChange={(e) => setData({ ...data, password: e.target.value })}
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition duration-300"
-            >
-              Sign Up
-            </button>
-          </form>
-           {/* Signup Link */}
-           <p className="text-center text-gray-600 mt-4">
-            if you have an account?{" "}
-            <Link to="/login" className="text-blue-500 hover:underline">
-              login 
-            </Link>
-          </p>
-        </div>
-      </div>
 
-      {/* Right Side - Image Section */}
-      <div className="w-1/2 hidden md:flex items-center justify-center bg-blue-500">
-        <img
-          src="https://imgs.search.brave.com/AnJsDxgrQpq8OjvLnjQHkiUlBjwgUBQa8l10M77fEhY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzAxLzcwLzM0LzIy/LzM2MF9GXzE3MDM0/MjIzNV9MVUQ2am5E/VE9ZSWMyTWprS1BC/cmx3SThvOURaemFM/QS5qcGc"
-          alt="Register Illustration"
-          className="w-full h-full object-cover"
+  const verifyOtp = async () => {
+    try {
+      const res = await axios.post("http://localhost:5000/verify-otp", {
+        ...registrationData,
+        otp: otp.join(""),
+      });
+      if (res.status === 201) {
+        toast.success("Registration successful");
+        navigate("/login");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || "OTP verification failed");
+    }
+  };
+
+  return (
+    <Grid container component="main" sx={{ height: "100vh" }}>
+      <CssBaseline />
+
+      {/* Left Side - Register Form */}
+      <Grid item xs={12} md={6} container justifyContent="center" alignItems="center">
+        <Container maxWidth="xs">
+          <Paper elevation={6} sx={{ p: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Typography component="h1" variant="h5">
+              Sign Up
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: "100%" }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="name"
+                label="Full Name"
+                name="name"
+                autoComplete="name"
+                autoFocus
+                value={formData.name}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+              <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+                Register
+              </Button>
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Typography variant="body2" sx={{ color: "gray" }}>
+                  Already have an account? {" "}
+                  <Link to="/login" style={{ color: "#1976d2", textDecoration: "none", fontWeight: "bold" }}>
+                    Login
+                  </Link>
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Container>
+      </Grid>
+
+      {/* Right Side - Image */}
+      <Grid item xs={12} md={6} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", justifyContent: "center", bgcolor: "gray.100" }}>
+        <Box
+          component="img"
+          src="https://dcassetcdn.com/design_img/2793673/484367/484367_15258317_2793673_cf010444_image.png"
+          alt="Register Background"
+          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
-      </div>
+      </Grid>
+
+      {/* OTP Modal */}
       <Modal
         open={showOtpModal}
         onClose={() => setShowOtpModal(false)}
@@ -177,8 +160,11 @@ const verifyOtp = async ()=>{
                   type="text"
                   inputProps={{ maxLength: 1 }}
                   value={digit}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  onChange={(e) => {
+                    const newOtp = [...otp];
+                    newOtp[index] = e.target.value;
+                    setOtp(newOtp);
+                  }}
                   sx={{ width: "40px", textAlign: "center" }}
                 />
               ))}
@@ -191,8 +177,6 @@ const verifyOtp = async ()=>{
           </Box>
         </Fade>
       </Modal>
-    </div>
+    </Grid>
   );
 }
-
-export default UserRegister
