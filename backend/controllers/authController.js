@@ -36,8 +36,8 @@ export const registerUser = async (req, res) => {
 
     await sendOTP(email, "user");
 
-    const hashedPassword = await hashPassword(password);
-    const tempuser = await Tempusers.create({ email, name,password:hashedPassword });
+    // const hashedPassword = await hashPassword(password);
+    // const tempuser = await Tempusers.create({ email, name,password:hashedPassword });
 
     res
       .status(200)

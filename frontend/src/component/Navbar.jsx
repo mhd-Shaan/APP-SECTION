@@ -18,7 +18,6 @@ const Navbar = () => {
           Sparecart
         </Typography>
 
-        {/* Desktop Menu */}
         <div className="hidden lg:flex space-x-6">
           {[{ name: "Home", path: "/" },
             ...(!user ? [{ name: "Login", path: "/login" }] : []),
