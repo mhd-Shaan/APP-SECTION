@@ -3,8 +3,6 @@ import Home from "./pages/Home";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import UserRegister from "./pages/UserRegister";
 import Userlogin from "./pages/Userlogin";
-import Stores from "./pages/Stores";
-import Home1 from "./pages/Home1";
 import useCheckAuth from "./hooks/useCheckAuth"; // ✅ Fixed Hook Name
 import { useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
@@ -14,9 +12,6 @@ function App() {
   const { user } = useSelector((state) => state.user);
 
  
-
-console.log(user);
-
 
   if (loading) {
     return <h1>Loading...</h1>; // ✅ Prevent rendering until auth check completes
@@ -30,7 +25,6 @@ console.log(user);
           <Route path="/" element={<Home />} />
           <Route path="/login" element={user ? <Home/>:<Userlogin />} />
           <Route path="/register" element={user ? <Home/>:<UserRegister />} />
-          <Route path="/stores" element={<Stores />} />
           <Route
             path="/home"
             element={user  ? <Home /> : <Userlogin />}

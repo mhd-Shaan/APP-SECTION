@@ -9,7 +9,7 @@ export const sendOTP = async (email, type) => {
   const otp = crypto.randomInt(100000, 999999).toString(); // Generate 6-digit OTP
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 mins
 
-  await OtpVerification.create({ email, otp, type, expiresAt }); // Make sure type is saved
+  await OtpVerification.create({ email, otp, userType:'user', expiresAt }); // Make sure type is saved
 
   const transporter = nodemailer.createTransport({
     service: "gmail",

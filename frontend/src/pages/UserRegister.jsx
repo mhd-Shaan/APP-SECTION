@@ -44,13 +44,17 @@ export default function UserRegister() {
       const res = await axios.post("http://localhost:5000/verify-otp", {
         ...registrationData,
         otp: otp.join(""),
+        
       });
+
       if (res.status === 201) {
         toast.success("Registration successful");
         navigate("/login");
       }
     } catch (error) {
       toast.error(error.response?.data?.error || "OTP verification failed");
+      console.log(error);
+      
     }
   };
 

@@ -11,9 +11,10 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name) return  res.status(400).json({ error: "name is required" });
-    if (!email) return  res.status(400).json({ error: "email is required" });
-    if (!password) return  res.status(400).json({ error: "password is required" });
+    if (!name) return res.status(400).json({ error: "name is required" });
+    if (!email) return res.status(400).json({ error: "email is required" });
+    if (!password)
+      return res.status(400).json({ error: "password is required" });
 
     if (password.length < 6) {
       return res.status(400).json({
@@ -22,7 +23,8 @@ export const registerUser = async (req, res) => {
     }
 
     const existingemail = await Users.findOne({ email });
-    if (existingemail) return  res.status(400).json({ error: "email is already taken" });
+    if (existingemail)
+      return res.status(400).json({ error: "email is already taken" });
 
     const exisitingtemp = await Tempusers.findOne({ email });
     if (exisitingtemp) {
@@ -36,9 +38,6 @@ export const registerUser = async (req, res) => {
 
     await sendOTP(email, "user");
 
-    // const hashedPassword = await hashPassword(password);
-    // const tempuser = await Tempusers.create({ email, name,password:hashedPassword });
-
     res
       .status(200)
       .json({ message: "OTP sent to email. Verify OTP to continue." });
@@ -49,18 +48,20 @@ export const registerUser = async (req, res) => {
 
 export const verifyOTP = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, password, name } = req.body;
+    
 
-    if (!email) return  res.status(400).json({ error: "email is required" });
-    if (!otp) return  res.status(400).json({ error: "otp is required" });
+    if (!name) return res.status(400).json({ error: "name is required" });
+    if (!email) return res.status(400).json({ error: "email is required" });
+    if (!password)
+      return res.status(400).json({ error: "password is required" });
+    if (!otp) return res.status(400).json({ error: "otp is required" });
 
-    // Find user by email
-    const otpRecord = await OTPVerification.findOne({ email });
-    const tempuser = await Tempusers.findOne({ email });
+    const otpRecord = await OTPVerification.findOne({ email, userType: 'user' });
 
     const existingemail = await Users.findOne({ email });
-    if (existingemail) return  res.status(400).json({ error: "User is already taken" });
-
+    if (existingemail)
+      return res.status(400).json({ error: "User is already taken" });
 
     if (!otpRecord || otpRecord.expiresAt < new Date()) {
       return res.status(400).json({ error: "OTP expired. Request a new one." });
@@ -69,72 +70,69 @@ export const verifyOTP = async (req, res) => {
     if (otpRecord.otp !== otp)
       return res.status(400).json({ error: "Invalid OTP" });
 
-    // Create User after successful OTP verification
+    const hashedPassword = await hashPassword(password);
+
     const newUser = await Users.create({
       email,
-      password: tempuser.password,
-      name: tempuser.name,
+      password: hashedPassword,
+      name,
     });
-    await OTPVerification.deleteOne({ email }); // Remove OTP record
-    await Tempusers.deleteOne({ email });
+    await OTPVerification.deleteOne({ email });
 
     res
       .status(201)
       .json({ message: "User registered successfully", user: newUser });
   } catch (error) {
-    res.status(500).json({ message: error });
+    res.status(500).json({ error });
+    console.log(error);
   }
 };
 
-export const loginUsers = async (req,res)=>{
+export const loginUsers = async (req, res) => {
   try {
-    const {email,password}=req.body
+    const { email, password } = req.body;
 
-    if (!email) return  res.status(400).json({ error: "email is required" });
+    if (!email) return res.status(400).json({ error: "email is required" });
 
+    const user = await Users.findOne({ email });
+    if (!user) return res.status(400).json({ error: "User is not exisiting" });
 
-    const user = await Users.findOne({email})
-    if(!user) return  res.status(400).json({error:"User is not exisiting"})
-
-     if (!password) return  res.status(400).json({ error: "password is required" });
+    if (!password)
+      return res.status(400).json({ error: "password is required" });
     if (!password || password.length < 6) {
-      return  res.status(400).json({ error: "password must be at least 6 characters long" });
+      return res
+        .status(400)
+        .json({ error: "password must be at least 6 characters long" });
     }
-    
- const match = await comparePassword(password,user.password)
- if(!match)  res.status(400).json({error:"Enter correct password"})
-    
-  jwt.sign({id:user.id},process.env.jwt_SECRET,{},(err,token)=>{
-    if(err) throw err;
 
+    const match = await comparePassword(password, user.password);
+    if (!match) res.status(400).json({ error: "Enter correct password" });
 
-    res.cookie("token", token, {
-      httpOnly: true,   // Prevents client-side JavaScript access
-      secure: true,     // Ensures cookies are sent only over HTTPS (set to false in development)
-      sameSite: "Strict", // Helps prevent CSRF attacks
-      maxAge: 3600000,  // 1 hour expiry
-  });
+    jwt.sign({ id: user.id }, process.env.jwt_SECRET, {}, (err, token) => {
+      if (err) throw err;
 
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      userdetails: {
+      res.cookie("token", token, {
+        httpOnly: true, // Prevents client-side JavaScript access
+        secure: true, // Ensures cookies are sent only over HTTPS (set to false in development)
+        sameSite: "Strict", // Helps prevent CSRF attacks
+        maxAge: 3600000, // 1 hour expiry
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Login successful",
+        userdetails: {
           id: user._id,
           name: user.name,
           email: user.email,
-      },
-      token,
-  });
-  })
-  
-
-   
+        },
+        token,
+      });
+    });
   } catch (error) {
     console.log(error);
-    
   }
-
-}
+};
 
 export const checkAuth = (req, res) => {
   try {
