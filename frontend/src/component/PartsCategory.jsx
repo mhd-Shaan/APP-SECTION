@@ -1,14 +1,5 @@
-import React from "react";
-
-const categories = [
-  { name: "Service Parts", icon: "🔧" },
-  { name: "Steering & Suspension", icon: "🛠️" },
-  { name: "Consumables, General", icon: "🧴" },
-  { name: "Electrical", icon: "💡" },
-  { name: "Wheels", icon: "🛞" },
-  { name: "Vision & Safety", icon: "👁️" },
-  { name: "Interior", icon: "🪑" },
-];
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const products = [
   {
@@ -34,6 +25,22 @@ const products = [
 ];
 
 const PartsCategory = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/catgoery");
+        
+        setCategories(response.data.category|| []);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <div className="p-6 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -41,7 +48,7 @@ const PartsCategory = () => {
           SEARCH BY <span className="font-bold text-teal-700">CATEGORY</span>
         </h2>
         <button className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full font-semibold shadow hover:shadow-md transition">
-          View All <span className="ml-1 font-bold">21</span>
+          View All <span className="ml-1 font-bold">{categories.length}</span>
         </button>
       </div>
 
@@ -51,7 +58,11 @@ const PartsCategory = () => {
             key={index}
             className="flex items-center gap-2 bg-blue-50 text-gray-800 px-4 py-2 rounded-xl shadow-sm hover:bg-blue-100 transition"
           >
-            <span>{cat.icon}</span>
+            <img
+              src={cat.image}
+              alt={cat.name}
+              className="w-6 h-6 object-contain"
+            />
             <span className="text-sm font-medium">{cat.name}</span>
           </button>
         ))}
