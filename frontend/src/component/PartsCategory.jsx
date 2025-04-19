@@ -1,38 +1,32 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-const products = [
-  {
-    name: "RADIATOR FLUSH CLEANER",
-    image: "https://www.liqui-moly.com/fileadmin/_processed_/1/b/csm_1804_1500_02_0a790f6b14.png",
-    sample: false,
-  },
-  {
-    name: "SEALANT",
-    image: "https://via.placeholder.com/120x150?text=Sealant",
-    sample: true,
-  },
-  {
-    name: "TAPE, PVC INSULATION",
-    image: "https://via.placeholder.com/120x150?text=PVC+Tape",
-    sample: true,
-  },
-  {
-    name: "AC CLEANER/DISINFECTANT",
-    image: "https://via.placeholder.com/120x150?text=AC+Cleaner",
-    sample: false,
-  },
-];
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode, Mousewheel } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/free-mode";
+import "swiper/css/mousewheel";
 
 const PartsCategory = () => {
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Fetch categories and auto-select first category
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/catgoery");
-        
-        setCategories(response.data.category|| []);
+        const response = await axios.get("http://localhost:5000/category");
+        const fetchedCategories = response.data.category || [];
+        setCategories(fetchedCategories);
+
+        if (fetchedCategories.length > 0) {
+          const firstCategoryId = fetchedCategories[0]._id;
+          setSelectedCategoryId(firstCategoryId);
+          fetchSubCategories(firstCategoryId);
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -41,55 +35,146 @@ const PartsCategory = () => {
     fetchCategories();
   }, []);
 
+  // Fetch subcategories for selected category
+  const fetchSubCategories = async (categoryId, page = 1) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/subcategory/${categoryId}`, {
+        params: { page, limit: 10 },
+      });
+
+      setSubCategories(response.data.subCategories || []);
+      setTotalPages(response.data.totalPages || 1);
+      setCurrentPage(response.data.currentPage || 1);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+    }
+  };
+
+  // When category button is clicked
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategoryId(categoryId);
+    setCurrentPage(1);
+    fetchSubCategories(categoryId, 1);
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          SEARCH BY <span className="font-bold text-teal-700">CATEGORY</span>
-        </h2>
-        <button className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full font-semibold shadow hover:shadow-md transition">
-          View All <span className="ml-1 font-bold">{categories.length}</span>
-        </button>
-      </div>
-
-      <div className="flex flex-wrap gap-3 mb-8">
-        {categories.map((cat, index) => (
-          <button
-            key={index}
-            className="flex items-center gap-2 bg-blue-50 text-gray-800 px-4 py-2 rounded-xl shadow-sm hover:bg-blue-100 transition"
-          >
-            <img
-              src={cat.image}
-              alt={cat.name}
-              className="w-6 h-6 object-contain"
-            />
-            <span className="text-sm font-medium">{cat.name}</span>
+      {/* CATEGORY SECTION */}
+      <section className="mb-10">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">
+            SEARCH BY <span className="font-bold text-teal-700">CATEGORY</span>
+          </h2>
+          <button className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full font-semibold shadow hover:shadow-md transition">
+            View All <span className="ml-1 font-bold">{categories.length}</span>
           </button>
-        ))}
-      </div>
+        </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-        {products.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white p-4 rounded-xl shadow hover:shadow-md transition relative"
-          >
-            {item.sample && (
-              <div className="absolute top-2 left-2 bg-yellow-300 text-black text-xs px-2 py-0.5 rounded font-semibold">
-                SAMPLE IMAGE
+        <Swiper
+          modules={[FreeMode, Mousewheel]}
+          spaceBetween={12}
+          slidesPerView="auto"
+          freeMode={true}
+          grabCursor={true}
+          mousewheel={{ forceToAxis: true }}
+          className="mb-8"
+        >
+          {categories.map((cat) => (
+            <SwiperSlide key={cat._id} style={{ width: "auto" }} className="!w-fit">
+              <button
+                onClick={() => handleCategoryClick(cat._id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl shadow-sm transition whitespace-nowrap ${
+                  selectedCategoryId === cat._id
+                    ? "bg-blue-700 text-white"
+                    : "bg-blue-50 text-gray-800 hover:bg-blue-100"
+                }`}
+              >
+                {cat.image && (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-6 h-6 object-contain"
+                  />
+                )}
+                <span className="text-sm font-medium">{cat.name}</span>
+              </button>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </section>
+
+      {/* SUBCATEGORY SECTION */}
+      {selectedCategoryId && subCategories.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">SUBCATEGORIES</h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {subCategories.map((sub) => (
+              <div
+                key={sub._id}
+                className="bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+              >
+                {sub.image && (
+                  <img
+                    src={sub.image}
+                    alt={sub.name}
+                    className="w-14 h-14 object-contain mb-2"
+                  />
+                )}
+                <span className="text-sm font-medium">{sub.name}</span>
               </div>
-            )}
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-40 object-contain mb-3"
-            />
-            <h3 className="text-sm font-semibold text-center text-gray-800">
-              {item.name}
-            </h3>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 space-x-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => {
+                  const newPage = currentPage - 1;
+                  setCurrentPage(newPage);
+                  fetchSubCategories(selectedCategoryId, newPage);
+                }}
+                className={`px-4 py-2 rounded-md text-sm font-medium border ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Previous
+              </button>
+
+              <span className="px-4 py-2 text-gray-700 font-semibold text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => {
+                  const newPage = currentPage + 1;
+                  setCurrentPage(newPage);
+                  fetchSubCategories(selectedCategoryId, newPage);
+                }}
+                className={`px-4 py-2 rounded-md text-sm font-medium border ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* IF NO SUBCATEGORIES */}
+      {selectedCategoryId && subCategories.length === 0 && (
+        <div className="text-center text-gray-400 mt-10 font-medium text-lg">
+          🚧 Subcategories coming soon...
+        </div>
+      )}
     </div>
   );
 };

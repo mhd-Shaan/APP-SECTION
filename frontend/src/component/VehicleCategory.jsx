@@ -1,6 +1,6 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import { Navigation } from "swiper/modules"; // ✅ Swiper v11+
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -40,7 +40,6 @@ const VehicleCategory = () => {
           </SwiperSlide>
         ))}
 
-        {/* Custom Small Navigation Buttons */}
         <div className="swiper-button-prev-custom absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-1 rounded-full shadow-md cursor-pointer z-10">
           <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

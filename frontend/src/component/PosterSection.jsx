@@ -1,8 +1,10 @@
 import React, { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
+import { Navigation, Autoplay } from "swiper/modules"; // ✅ FIXED
+import "swiper/css"; // Import default Swiper CSS
+import "swiper/css/navigation"; // Navigation styles
+
+
 
 import poster1 from "../assets/images/4721774. 1.png";
 import poster2 from "../assets/images/4721777 1.png";
