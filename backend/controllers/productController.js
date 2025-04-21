@@ -2,6 +2,8 @@ import Brands from "../models/BrandSchema.js";
 import Category from "../models/CatgoerySchema.js";
 import Product from "../models/productschema.js";
 import SubCategory from "../models/SubCatgoery.js";
+import Wishlist from "../models/wishlistSchema.js";
+import wishlist from "../models/wishlistSchema.js";
 
 export const productview = async (req, res) => {
   try {
@@ -87,5 +89,50 @@ export const SubCategoryShow = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+export const addwishlist = async (req, res) => {
+  try {
+    const userId =  req.User
+    
+    const { productId } = req.body;
+    console.log(productId);
+    
+
+    if (!productId) {
+      return res.status(400).json({ message: 'Product ID is required' });
+    }
+
+    let wishlist = await Wishlist.findOne({ user: userId });
+
+    if (!wishlist) {
+      // If no wishlist exists, create one
+      wishlist = new Wishlist({
+        user: userId,
+        items: [{ product: productId }]
+      });
+    } else {
+      // Check if the product is already in the wishlist
+      const alreadyExists = wishlist.items.some(item =>
+        item.product.toString() === productId
+      );
+
+      if (alreadyExists) {
+        return res.status(409).json({ message: 'Product already in wishlist' });
+      }
+
+      // Add the product to the wishlist
+      wishlist.items.push({ product: productId });
+    }
+
+    await wishlist.save();
+    res.status(200).json({ message: 'Product added to wishlist', wishlist });
+
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

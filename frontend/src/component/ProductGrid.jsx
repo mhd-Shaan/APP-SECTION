@@ -4,6 +4,7 @@ import Slider from "react-slick";
 import toast from "react-hot-toast";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import WishlistButton from "./WishlistButton"; // 👈 import the wishlist button
 
 // Custom Arrow Components
 const NextArrow = ({ onClick }) => (
@@ -109,9 +110,7 @@ const ProductSlider = () => {
                   <button className="bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-800 transition w-full">
                     ADD TO CART
                   </button>
-                  <button className="p-2 border border-gray-300 rounded-lg text-gray-500 hover:text-red-500 transition">
-                    ♥
-                  </button>
+                  <WishlistButton productId={item._id} />
                 </div>
               </div>
             </div>
