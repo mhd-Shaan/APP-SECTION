@@ -5,8 +5,11 @@ import UserRegister from "./pages/UserRegister";
 import Userlogin from "./pages/Userlogin";
 import useCheckAuth from "./hooks/useCheckAuth"; // ✅ Fixed Hook Name
 import { useSelector } from "react-redux";
+import ProductDetailsWrapper from "./component/ProductGrid";
 
 import { Toaster } from "react-hot-toast";
+import Wishlist from "./pages/Wishlist";
+import Cart from "./pages/Cart";
 
 function App() {
   const { loading } = useCheckAuth(); // ✅ Hook now returns loading
@@ -28,8 +31,10 @@ function App() {
           <Route path="/register" element={user ? <Home/>:<UserRegister />} />
           <Route
             path="/home"
-            element={user  ? <Home /> : <Userlogin />}
-          />
+            element={user  ? <Home /> : <Userlogin />}/>
+          <Route path="/wishlist" element={<Wishlist/>}></Route>
+          <Route path="/cart" element={<Cart/>}></Route>
+          <Route path="/product/:productId" element={<ProductDetailsWrapper />} />
         </Routes>
       </Router>
     </>

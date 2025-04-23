@@ -136,7 +136,6 @@ export const loginUsers = async (req, res) => {
 
 export const checkAuth = (req, res) => {
   try {
-    console.log("controll", req.User);
     res.status(200).json(req.User);
   } catch (error) {
     console.log("error from checkAuth", error.message);
