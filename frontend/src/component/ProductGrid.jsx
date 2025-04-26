@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Slider from "react-slick";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import WishlistButton from "./WishlistButton";
+import AddToCartButton from "./Cartlogic";
 
 const NextArrow = ({ onClick }) => (
   <div
@@ -46,17 +47,8 @@ const ProductSlider = () => {
     fetchProducts();
   }, []);
 
-  const addToCart = async (productId) => {
-    try {
-      await axios.post(
-        "http://localhost:5000/addcart",
-        { productId, quantity: 1 },
-        { withCredentials: true }
-      );
-      toast.success("Product added to cart");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to add to cart");
-    }
+  const handleProductClick = (id) => {
+    navigate(`/product-details/${id}`);
   };
 
   const settings = {
@@ -105,12 +97,12 @@ const ProductSlider = () => {
           {products.map((item, i) => (
             <div key={i} className="px-4">
               <div
-                onClick={() => navigate(`/product/${item._id}`, { state: { product: item } })}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-blue-100 p-6 min-h-[420px] flex flex-col justify-between relative cursor-pointer"
+                onClick={() => handleProductClick(item._id)}
               >
                 <div className="h-40 flex justify-center items-center mb-4">
                   <img
-                    src={item.images || "/placeholder-image.png"}
+                    src={item.images[0] || "/placeholder-image.png"}
                     alt={item.productName}
                     className="object-contain h-full transform hover:scale-105 transition-transform duration-300"
                   />
@@ -140,16 +132,11 @@ const ProductSlider = () => {
                   <span className="text-sm text-white bg-blue-500 px-2 py-1 rounded">-15%</span>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 mt-5">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(item._id);
-                    }}
-                    className="bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-800 transition w-full"
-                  >
-                    ADD TO CART
-                  </button>
+                <div
+                  className="flex items-center justify-center gap-2 mt-5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <AddToCartButton productId={item._id} />
                   <WishlistButton productId={item._id} />
                 </div>
               </div>

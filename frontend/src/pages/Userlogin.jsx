@@ -6,17 +6,22 @@ import { loginuser } from "@/redux/userslice";
 import { toast } from "react-hot-toast";
 import {
   Button,
-  CssBaseline,
   TextField,
-  Grid,
   Box,
   Typography,
   Container,
   Paper,
+  InputAdornment,
+  IconButton,
+  Divider
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import Navbar from "@/component/Navbar";
+import Footer from "@/component/Footer";
 
 export default function UserLogin() {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -41,70 +46,119 @@ export default function UserLogin() {
   };
 
   return (
-    <Grid container component="main" sx={{ height: "100vh" }}>
-      <CssBaseline />
+    <>
+      <Navbar />
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Paper elevation={0} sx={{ p: 4, border: '1px solid #e0e0e0' }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 3, color: '#000' }}>
+            Customer Login
+          </Typography>
 
-      {/* Left Side - Login Form */}
-      <Grid item xs={12} md={6} container justifyContent="center" alignItems="center">
-        <Container maxWidth="xs">
-          <Paper elevation={6} sx={{ p: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            
-            <Typography component="h1" variant="h5">
-              Login 
+          <Typography variant="h6" component="h2" sx={{ mb: 3, color: '#333' }}>
+            Registered Customers
+          </Typography>
+          
+          <Typography variant="body1" sx={{ mb: 3, color: '#555' }}>
+            If you have an account, sign in with your email address.
+          </Typography>
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#000' }}>
+              Email *
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: "100%" }}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                value={formData.email}
-                onChange={handleChange}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+            <TextField
+              fullWidth
+              name="email"
+              variant="outlined"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              sx={{ mb: 3 }}
+            />
+            
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#000' }}>
+              Password *
+            </Typography>
+            <TextField
+              fullWidth
+              name="password"
+              type={showPassword ? "text" : "password"}
+              variant="outlined"
+              placeholder="password"
+              value={formData.password}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-              <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                Sign In
-              </Button>
-
-              {/* Centered Sign Up Text */}
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Typography variant="body2" sx={{ color: "gray" }}>
-                  If you don't have an account?{" "}
-                  <Link to="/register" style={{ color: "#1976d2", textDecoration: "none", fontWeight: "bold" }}>
-                    Sign Up
-                  </Link>
-                </Typography>
-              </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+              <Link 
+                to="/forgot-password" 
+                style={{ 
+                  color: '#FFD700', 
+                  textDecoration: 'none',
+                  fontWeight: 'bold'
+                }}
+              >
+                Forgot Your Password?
+              </Link>
             </Box>
-          </Paper>
-        </Container>
-      </Grid>
 
-      {/* Right Side - Image */}
-      <Grid item xs={12} md={6} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", justifyContent: "center", bgcolor: "gray.100" }}>
-        <Box
-          component="img"
-          src="https://dcassetcdn.com/design_img/2793673/484367/484367_15258317_2793673_cf010444_image.png"
-          alt="Login Background"
-          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      </Grid>
-    </Grid>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                py: 2,
+                backgroundColor: '#FFD700',
+                color: '#000',
+                fontWeight: 'bold',
+                '&:hover': {
+                  backgroundColor: '#e6c200'
+                }
+              }}
+            >
+              SIGN IN
+            </Button>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Don't have an account?
+              </Typography>
+              <Button
+                component={Link}
+                to="/register"
+                variant="outlined"
+                sx={{
+                  borderColor: '#FFD700',
+                  color: '#FFD700',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    borderColor: '#e6c200',
+                    backgroundColor: 'rgba(255, 215, 0, 0.08)'
+                  }
+                }}
+              >
+                CREATE ACCOUNT
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+      <Footer />
+    </>
   );
 }

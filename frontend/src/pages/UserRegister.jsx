@@ -4,9 +4,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import {
   Button,
-  CssBaseline,
   TextField,
-  Grid,
   Box,
   Typography,
   Container,
@@ -14,7 +12,10 @@ import {
   Modal,
   Backdrop,
   Fade,
+  Divider,
+  Grid
 } from "@mui/material";
+import Navbar from "@/component/Navbar";
 
 export default function UserRegister() {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -44,7 +45,6 @@ export default function UserRegister() {
       const res = await axios.post("http://localhost:5000/verify-otp", {
         ...registrationData,
         otp: otp.join(""),
-        
       });
 
       if (res.status === 201) {
@@ -53,83 +53,118 @@ export default function UserRegister() {
       }
     } catch (error) {
       toast.error(error.response?.data?.error || "OTP verification failed");
-      console.log(error);
-      
     }
   };
 
   return (
-    <Grid container component="main" sx={{ height: "100vh" }}>
-      <CssBaseline />
-
-      {/* Left Side - Register Form */}
-      <Grid item xs={12} md={6} container justifyContent="center" alignItems="center">
-        <Container maxWidth="xs">
-          <Paper elevation={6} sx={{ p: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <Typography component="h1" variant="h5">
-              Sign Up
+    <>
+      <Navbar />
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Paper elevation={0} sx={{ 
+          p: 6, 
+          border: '1px solid #e0e0e0',
+          borderRadius: 2
+        }}>
+          {/* Header Section */}
+          <Box textAlign="center" mb={4}>
+            <Typography variant="h4" component="h1" sx={{ 
+              fontWeight: 'bold', 
+              color: '#000',
+              mb: 1
+            }}>
+              Create Your Account
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: "100%" }}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="name"
-                label="Full Name"
-                name="name"
-                autoComplete="name"
-                autoFocus
-                value={formData.name}
-                onChange={handleChange}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="new-password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-                Register
-              </Button>
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Typography variant="body2" sx={{ color: "gray" }}>
-                  Already have an account? {" "}
-                  <Link to="/login" style={{ color: "#1976d2", textDecoration: "none", fontWeight: "bold" }}>
-                    Login
-                  </Link>
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Container>
-      </Grid>
+            <Typography variant="body1" sx={{ color: '#555' }}>
+              Join our spare parts community today
+            </Typography>
+          </Box>
 
-      {/* Right Side - Image */}
-      <Grid item xs={12} md={6} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", justifyContent: "center", bgcolor: "gray.100" }}>
-        <Box
-          component="img"
-          src="https://dcassetcdn.com/design_img/2793673/484367/484367_15258317_2793673_cf010444_image.png"
-          alt="Register Background"
-          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      </Grid>
+          <Divider sx={{ my: 3 }} />
+
+          {/* Registration Form */}
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#000' }}>
+                  Full Name *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="name"
+                  variant="outlined"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#000' }}>
+                  Email Address *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="email"
+                  variant="outlined"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: '#000' }}>
+                  Password *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="password"
+                  type="password"
+                  variant="outlined"
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                py: 2,
+                mt: 3,
+                backgroundColor: '#FFD700',
+                color: '#000',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                '&:hover': {
+                  backgroundColor: '#e6c200'
+                }
+              }}
+            >
+              REGISTER NOW
+            </Button>
+
+            <Box textAlign="center" mt={3}>
+              <Typography variant="body2" sx={{ color: '#555' }}>
+                Already have an account? {' '}
+                <Link 
+                  to="/login" 
+                  style={{ 
+                    color: '#FFD700', 
+                    fontWeight: 'bold',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Sign In
+                </Link>
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
 
       {/* OTP Modal */}
       <Modal
@@ -151,16 +186,20 @@ export default function UserRegister() {
               boxShadow: 24,
               p: 4,
               borderRadius: 2,
+              textAlign: "center"
             }}
           >
-            <Typography variant="h6" align="center" gutterBottom>
-              Enter OTP
+            <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Verify Your Email
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              Enter the 6-digit code sent to your email
+            </Typography>
+            
+            <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 4 }}>
               {otp.map((digit, index) => (
                 <TextField
                   key={index}
-                  id={`otp-input-${index}`}
                   type="text"
                   inputProps={{ maxLength: 1 }}
                   value={digit}
@@ -169,18 +208,32 @@ export default function UserRegister() {
                     newOtp[index] = e.target.value;
                     setOtp(newOtp);
                   }}
-                  sx={{ width: "40px", textAlign: "center" }}
+                  sx={{ 
+                    width: "40px", 
+                    "& .MuiInputBase-input": { 
+                      textAlign: "center" 
+                    } 
+                  }}
                 />
               ))}
             </Box>
-            <Box textAlign="center" marginTop={2}>
-              <Button variant="contained" color="primary" onClick={verifyOtp}>
-                Verify OTP
-              </Button>
-            </Box>
+            
+            <Button 
+              variant="contained"
+              fullWidth
+              onClick={verifyOtp}
+              sx={{
+                py: 1.5,
+                backgroundColor: '#FFD700',
+                color: '#000',
+                fontWeight: 'bold'
+              }}
+            >
+              VERIFY OTP
+            </Button>
           </Box>
         </Fade>
       </Modal>
-    </Grid>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import {registerUser,verifyOTP,loginUsers,checkAuth} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
-import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, removeCartItem, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
+import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
 
 const router = express.Router();
 
@@ -21,6 +21,7 @@ router.post('/addcart',protectRouteuser,addcart)
 router.get('/viewcart',protectRouteuser,viewCart)
 // router.put('/updatecart/:id',protectRouteuser,updateCartItem)
 router.delete('/deletecart/:id',protectRouteuser,removeCartItem)
+router.get('/productdetails/:id',productviewbyid)
 
 
 export default router;

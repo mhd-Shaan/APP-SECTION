@@ -1,15 +1,31 @@
-import React from "react";
+// src/components/ui/card.jsx
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-const Card = ({ children, className }) => {
-  return (
-    <div className={`border p-4 rounded-lg shadow-md ${className}`}>
-      {children}
-    </div>
-  );
-};
+const Card = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
 
-const CardContent = ({ children }) => {
-  return <div className="p-2">{children}</div>;
-};
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
 
-export { Card, CardContent };
+const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+export { Card, CardHeader, CardContent }

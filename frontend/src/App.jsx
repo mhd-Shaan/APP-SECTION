@@ -10,6 +10,7 @@ import ProductDetailsWrapper from "./component/ProductGrid";
 import { Toaster } from "react-hot-toast";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
+import ProductDetails from "./component/ProductDetails";
 
 function App() {
   const { loading } = useCheckAuth(); // ✅ Hook now returns loading
@@ -34,8 +35,8 @@ function App() {
             element={user  ? <Home /> : <Userlogin />}/>
           <Route path="/wishlist" element={<Wishlist/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
-          <Route path="/product/:productId" element={<ProductDetailsWrapper />} />
-        </Routes>
+          <Route path="/product-details/:id" element={<ProductDetails />} />
+          </Routes>
       </Router>
     </>
   );

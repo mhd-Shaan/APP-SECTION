@@ -298,3 +298,16 @@ export const removeCartItem = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+export const productviewbyid = async (req, res) => {
+  try {
+    const { id } = req.params; 
+
+    const products = await Product.findById(id); 
+    res.status(200).json({ products });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "error on fetching products" });
+  }
+};

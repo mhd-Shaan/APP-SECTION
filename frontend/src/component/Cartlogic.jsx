@@ -7,6 +7,7 @@ function AddToCartButton({ productId }) {
 
   const handleAddToCart = async () => {
     setLoading(true);
+    
     try {
       await axios.post(
         'http://localhost:5000/addcart',
@@ -14,8 +15,9 @@ function AddToCartButton({ productId }) {
         { withCredentials: true }
       );
       setAdded(true);
+      
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.log('Error adding to cart:', error);
     } finally {
       setLoading(false);
     }
