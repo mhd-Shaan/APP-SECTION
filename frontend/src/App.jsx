@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import ProductDetails from "./component/ProductDetails";
+import ForgetPassword from "./pages/ForgetPassword";
 
 function App() {
   const { loading } = useCheckAuth(); // ✅ Hook now returns loading
@@ -36,6 +37,7 @@ function App() {
           <Route path="/wishlist" element={<Wishlist/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
           <Route path="/product-details/:id" element={<ProductDetails />} />
+          <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
           </Routes>
       </Router>
     </>

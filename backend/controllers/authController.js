@@ -4,6 +4,7 @@ import authHelper from "../helpers/auth.js";
 import { sendOTP } from "../helpers/emailService.js";
 import Tempusers from "../models/tempuserschema.js";
 import jwt from "jsonwebtoken";
+import OtpVerification from "../models/otpschema.js";
 
 const { hashPassword, comparePassword } = authHelper;
 
@@ -144,5 +145,97 @@ export const checkAuth = (req, res) => {
   } catch (error) {
     console.log("error from checkAuth", error.message);
     res.status(500).json({ msg: error.message });
+  }
+};
+
+
+
+
+export const Otpsend = async(req,res)=>{
+  try {
+    const {email}=req.body
+    if(!email) return res.status(400).json({error:"email is required"})
+
+      const admin = await Users.findOne({email });
+      if (!admin) {
+        return res.status(404).json({ error: "this email is not registred" });
+    }
+    const otpsend = await OTPVerification.findOne({email})
+    if(otpsend){
+      await OTPVerification.deleteOne({ email });
+    }
+    await sendOTP(email,"user");
+    res.status(200).json({ message: "otp sended" });
+
+  } catch (error) {
+    console.error("Error send otp :", error);
+      res.status(500).json({ error });
+  }
+}
+
+export const CheckingOtp=async(req,res)=>{
+  try {
+    const {email,otp}=req.body
+
+    if (!email) return res.status(400).json({ error: "Email is required" });
+    if (!otp) return res.status(400).json({ error: "OTP is required" });
+
+    const otpRecord = await OTPVerification.findOne({ email });
+
+    if (!otpRecord || otpRecord.expiresAt < new Date()) {
+      return res.status(400).json({ error: "OTP expired. Request a new one." });
+    }
+
+    if (otpRecord.otp !== otp)
+      return res.status(400).json({ error: "Invalid OTP" });
+
+    const updatedOtp = await OtpVerification.findOneAndUpdate(
+      { email }, 
+      { otpisverfied: true }, 
+      { new: true } 
+    );
+    res.status(200).json({ message: " OTP verified successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error verifying OTP." });
+    console.log(error);
+  }
+} 
+
+export const updatePassword = async (req, res) => {
+  try {
+    const { email, password, confirmPassword } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Email is required" });
+    if (!password) return res.status(400).json({ error: "Enter a password" });
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters long" });
+    }
+    if (!confirmPassword) return res.status(400).json({ error: "Enter confirm password" });
+    if (password !== confirmPassword) return res.status(400).json({ error: "Passwords do not match" });
+
+    const User = await Users.findOne({ email });
+    if (!User) {
+      return res.status(404).json({ error: "This User is not registered" });
+    }
+
+    const otpchecking = await OtpVerification.findOne({ email, otpisverfied: true });
+
+    if (!otpchecking) {
+      return res.status(400).json({ error: "OTP  verification not completed" });
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    User.password = hashedPassword;
+    await User.save();
+
+    await OtpVerification.deleteOne({ email });
+
+    return res.status(200).json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    console.log("Error updating password:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
