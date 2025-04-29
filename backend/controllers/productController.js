@@ -311,3 +311,46 @@ export const productviewbyid = async (req, res) => {
     res.status(500).json({ error: "error on fetching products" });
   }
 };
+
+
+export const searchquery = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      filter = ""
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    const searchFilter = {
+      $or: [
+        { productName: { $regex: search, $options: "i" } }, // Changed from 'name' to 'productName'
+        { description: { $regex: search, $options: "i" } },
+        { partType: { $regex: search, $options: "i" } },
+        { spareBrand: { $regex: search, $options: "i" } }
+      ]
+    };
+
+    // If you want to make search optional when empty string:
+    if (!search.trim()) {
+      delete searchFilter.$or;
+    }
+
+    const totalproduct = await Product.countDocuments(searchFilter);
+    const products = await Product.find(searchFilter)
+      .skip(skip)
+      .limit(Number(limit));
+
+    res.status(200).json({
+      products,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalproduct / limit),
+      totalproduct,
+    });
+  } catch (error) {
+    console.log("Error in searchquery:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

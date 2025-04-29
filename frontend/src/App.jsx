@@ -12,6 +12,7 @@ import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import ProductDetails from "./component/ProductDetails";
 import ForgetPassword from "./pages/ForgetPassword";
+import SearchPage from "./ProductList/ProductPage";
 
 function App() {
   const { loading } = useCheckAuth(); // ✅ Hook now returns loading
@@ -38,6 +39,7 @@ function App() {
           <Route path="/cart" element={<Cart/>}></Route>
           <Route path="/product-details/:id" element={<ProductDetails />} />
           <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
+          <Route path="/search" element={<SearchPage />} />
           </Routes>
       </Router>
     </>

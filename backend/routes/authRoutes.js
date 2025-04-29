@@ -1,7 +1,7 @@
 import express from 'express';
 import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
-import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
+import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
 
 const router = express.Router();
 
@@ -26,7 +26,7 @@ router.get('/productdetails/:id',productviewbyid)
 router.post('/forget-password-otp',Otpsend)
 router.post('/forgetpassword-verify-otp', CheckingOtp);  
 router.put('/passwordupdate',updatePassword)
-
+router.get('/searchview',searchquery)
 
 
 export default router;
