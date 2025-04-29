@@ -326,14 +326,13 @@ export const searchquery = async (req, res) => {
 
     const searchFilter = {
       $or: [
-        { productName: { $regex: search, $options: "i" } }, // Changed from 'name' to 'productName'
+        { productName: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { partType: { $regex: search, $options: "i" } },
         { spareBrand: { $regex: search, $options: "i" } }
       ]
     };
 
-    // If you want to make search optional when empty string:
     if (!search.trim()) {
       delete searchFilter.$or;
     }

@@ -1,9 +1,12 @@
+// src/pages/SearchPage.jsx
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import SearchResults from "../component/SearchResults";
-import Pagination from "./Pagination";
 import SidebarFilters from "./SidebarFilters";
+import ProductGrid from "./ProductGrid";
+import Footer from "@/component/Footer";
+import Navbar from "@/component/Navbar";
 
 const SearchPage = () => {
   const location = useLocation();
@@ -29,11 +32,8 @@ const SearchPage = () => {
         setLoading(true);
         const response = await axios.get(
           `http://localhost:5000/searchview?search=${searchQuery}&page=${pageQuery}`,
+          { withCredentials: true }
         );
-        
-
-        // Debug the response
-        console.log("Search API Response:", response.data);
 
         const {
           products = [],
@@ -46,7 +46,7 @@ const SearchPage = () => {
         setTotalResults(totalproduct);
       } catch (error) {
         console.error("Search error:", error);
-        setResults([]); // fallback in case of error
+        setResults([]);
         setTotalPages(1);
         setTotalResults(0);
       } finally {
@@ -67,46 +67,37 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar Filters */}
-        <div className="w-full md:w-1/4">
-          <SidebarFilters
-            onFilterChange={handleFilterChange}
-            currentFilters={filters}
-          />
-        </div>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
 
-        {/* Main Content */}
-        <div className="w-full md:w-3/4">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">
-              Search Results for "{searchQuery}"
-            </h1>
-            <p className="text-gray-600">
-              Showing {results.length} of {totalResults} results
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-            </div>
-          ) : (
-            <>
-              <SearchResults
-                results={results}
-                onResultClick={() => window.scrollTo(0, 0)}
+      <main className="flex-grow bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Sidebar Filters */}
+            <div className="w-full md:w-1/4">
+              <SidebarFilters
+                onFilterChange={handleFilterChange}
+                currentFilters={filters}
               />
-              <Pagination
+            </div>
+
+            {/* Product Grid (separated) */}
+            <div className="w-full md:w-3/4">
+              <ProductGrid
+                products={results}
+                loading={loading}
+                totalResults={totalResults}
                 currentPage={Number(pageQuery)}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
+                searchQuery={searchQuery}
               />
-            </>
-          )}
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

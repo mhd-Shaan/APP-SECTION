@@ -1,63 +1,45 @@
-// SidebarFilters.jsx
-import React, { useState } from "react";
+import React from "react";
 
-const SidebarFilters = ({ onFilterChange, currentFilters }) => {
-  const [localFilters, setLocalFilters] = useState(currentFilters);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const newFilters = { ...localFilters, [name]: value };
-    setLocalFilters(newFilters);
-    onFilterChange(newFilters);
-  };
-
-  const handleCheckboxChange = (e) => {
-    const { name, checked, value } = e.target;
-    const newFilters = { ...localFilters, [name]: checked ? value : '' };
-    setLocalFilters(newFilters);
-    onFilterChange(newFilters);
-  };
-
+const SidebarFilters = ({ onFilterChange, currentFilters, onClearFilters }) => {
   return (
-    <div className="bg-white p-4 rounded shadow-sm">
-      <h2 className="text-lg font-semibold mb-4">Filters</h2>
-
+    <div className="bg-white p-4 rounded shadow-sm border border-gray-200 w-full">
+      <h2 className="text-lg font-semibold mb-4 border-b pb-2">Filters</h2>
+      
       {/* Price Range */}
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Price Range</h3>
+      <div className="mb-4">
+        <h3 className="font-medium text-sm mb-2">Price Range</h3>
         <div className="flex gap-2">
           <input
             type="number"
-            name="minPrice"
             placeholder="Min"
-            value={localFilters.minPrice}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className="w-full p-1.5 text-sm border rounded"
+            value={currentFilters.minPrice}
+            onChange={(e) => onFilterChange({ ...currentFilters, minPrice: e.target.value })}
           />
           <input
             type="number"
-            name="maxPrice"
             placeholder="Max"
-            value={localFilters.maxPrice}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className="w-full p-1.5 text-sm border rounded"
+            value={currentFilters.maxPrice}
+            onChange={(e) => onFilterChange({ ...currentFilters, maxPrice: e.target.value })}
           />
         </div>
       </div>
 
       {/* Categories */}
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Categories</h3>
-        <div className="space-y-2">
+      <div className="mb-4">
+        <h3 className="font-medium text-sm mb-2">Categories</h3>
+        <div className="space-y-1">
           {['Engine', 'Brake', 'Electrical', 'Suspension'].map((category) => (
-            <label key={category} className="flex items-center">
+            <label key={category} className="flex items-center text-sm">
               <input
                 type="checkbox"
-                name="category"
-                value={category}
-                checked={localFilters.category === category}
-                onChange={handleCheckboxChange}
-                className="mr-2"
+                className="mr-2 h-3.5 w-3.5"
+                checked={currentFilters.category === category}
+                onChange={() => onFilterChange({ 
+                  ...currentFilters, 
+                  category: currentFilters.category === category ? '' : category 
+                })}
               />
               {category}
             </label>
@@ -66,18 +48,19 @@ const SidebarFilters = ({ onFilterChange, currentFilters }) => {
       </div>
 
       {/* Brands */}
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Brands</h3>
-        <div className="space-y-2">
+      <div className="mb-4">
+        <h3 className="font-medium text-sm mb-2">Brands</h3>
+        <div className="space-y-1">
           {['Bosch', 'NGK', 'Castrol', 'Mobil'].map((brand) => (
-            <label key={brand} className="flex items-center">
+            <label key={brand} className="flex items-center text-sm">
               <input
                 type="checkbox"
-                name="brand"
-                value={brand}
-                checked={localFilters.brand === brand}
-                onChange={handleCheckboxChange}
-                className="mr-2"
+                className="mr-2 h-3.5 w-3.5"
+                checked={currentFilters.brand === brand}
+                onChange={() => onFilterChange({ 
+                  ...currentFilters, 
+                  brand: currentFilters.brand === brand ? '' : brand 
+                })}
               />
               {brand}
             </label>
@@ -86,17 +69,8 @@ const SidebarFilters = ({ onFilterChange, currentFilters }) => {
       </div>
 
       <button
-        onClick={() => {
-          const resetFilters = {
-            category: '',
-            brand: '',
-            minPrice: '',
-            maxPrice: ''
-          };
-          setLocalFilters(resetFilters);
-          onFilterChange(resetFilters);
-        }}
-        className="text-yellow-600 hover:text-yellow-700 text-sm"
+        onClick={onClearFilters}
+        className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
       >
         Clear all filters
       </button>

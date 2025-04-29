@@ -37,7 +37,7 @@ const Navbar = () => {
       setSearchResults(data);
       setShowResults(true);
     } catch (error) {
-      console.error("Search error:", error);
+      console.log("Search error:", error);
     }
   };
 
