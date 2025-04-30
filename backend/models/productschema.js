@@ -1,15 +1,16 @@
+
+
 import mongoose from "mongoose";
-import { type } from "os";
 
 const productSchema = new mongoose.Schema(
   {
-    storeid:{
-      type:String,
+    storeid: {
+      type: String,
+      required: true,
     },
     vehicleType: {
       type: String,
       required: true,
-     // enum: ["2-Wheeler", "4-Wheeler", "Commercial Vehicle"],
     },
     vehicleBrand: {
       type: String,
@@ -19,17 +20,26 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    partType: {
+    category: {
       type: String,
       required: true,
     },
-    spareBrand: {
+    subcategory: {
       type: String,
       required: true,
+    },
+    brandType: {
+      type: String,
+      required: true,
+    },
+    brand: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'brands',
     },
     productId: {
       type: String,
       required: true,
+      unique: true,
     },
     productName: {
       type: String,
@@ -37,6 +47,15 @@ const productSchema = new mongoose.Schema(
     },
     description: {
       type: String,
+      required: true,
+    },
+    mrp: {
+      type: Number,
+      required: true,
+    },
+    discount: {
+      type: Number,
+      default: 0,
     },
     price: {
       type: Number,
@@ -46,16 +65,24 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    warranty: {
+      type: String,
+      default: "",
+    },
+    features: {
+      type: String,
+      default: "",
+    },
     images: {
-      type: [String], // Array of image URLs
+      type: [String],
       required: true,
     },
-    isBlock:{
-      type:Boolean,
-      default:false
+    isBlock: {
+      type: Boolean,
+      default: false,
     },
   },
-  { timestamps: true } // Adds createdAt and updatedAt fields
+  { timestamps: true }
 );
 
 const Product = mongoose.model("Product", productSchema);

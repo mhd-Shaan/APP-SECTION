@@ -1,28 +1,41 @@
-// SearchResults.jsx
-import React from "react";
-import { Link } from "react-router-dom";
-import ProductCard from "../ProductList/ProductCard";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import SidebarFilters from "@/ProductList/SidebarFilters";
+import Breadcrumbs from "@/ProductList/Breadcrumbs";
+import SortOptions from "@/ProductList/SortOptions";
+import ProductGrid from "@/ProductList/ProductGrid";
 
-const SearchResults = ({ results, onResultClick }) => {
-  if (results.length === 0) {
-    return (
-      <div className="p-4 text-gray-500 text-sm">
-        No products found. Try different keywords.
-      </div>
-    );
-  }
-
+const MainLayout = () => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-      {results.map((product) => (
-        <ProductCard 
-          key={product._id} 
-          product={product} 
-          onClick={onResultClick}
-        />
-      ))}
+    <div className="flex flex-col min-h-screen">
+      {/* Sticky Navbar */}
+      <div className="sticky top-0 z-50 bg-white shadow">
+        <Navbar />
+      </div>
+
+      {/* 5% vertical gap */}
+      <div className="h-[5vh]" />
+
+      <div className="flex flex-1">
+        {/* Sidebar Filters */}
+        <div className="w-1/5 bg-white border-r px-4 pt-12">
+          <SidebarFilters />
+        </div>
+
+        {/* Main Content */}
+        <main className="w-4/5 px-4 pt-5 	 ">
+          {/* <Breadcrumbs />
+          <SortOptions /> */}
+
+          <div className="py-4">
+            <ProductGrid />
+          </div>
+        </main>
+      </div>
+
+      <Footer />
     </div>
   );
 };
 
-export default SearchResults;
+export default MainLayout;

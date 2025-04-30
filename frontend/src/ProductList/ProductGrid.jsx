@@ -1,56 +1,208 @@
-// src/components/ProductGrid.jsx
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import WishlistButton from "@/component/WishlistButton";
 
-import React from "react";
-import ProductCard from "./ProductCard";
-import Pagination from "./Pagination";
+const ProductGrid = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
-const ProductGrid = ({
-  products,
-  loading,
-  totalResults,
-  currentPage,
-  totalPages,
-  onPageChange,
-  searchQuery,
-}) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const query = searchParams.get("q");
+  const page = parseInt(searchParams.get("page")) || 1;
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("http://localhost:5000/searchview", {
+          params: { search: query, page },
+        });
+
+        setProducts(response.data.products || []);
+        setTotalPages(response.data.totalPages || 1);
+        setCurrentPage(response.data.currentPage || 1);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [query, page]);
+
+  const handlePageChange = (newPage) => {
+    const newSearch = new URLSearchParams(location.search);
+    newSearch.set("page", newPage);
+    navigate(`${location.pathname}?${newSearch.toString()}`);
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-      </div>
-    );
-  }
-
-  if (!loading && products.length === 0) {
-    return (
-      <div className="bg-white p-8 rounded-lg shadow text-center">
-        <p className="text-gray-600">No products found matching your search.</p>
+      <div className="p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white p-3 rounded-lg border">
+              <div className="animate-pulse">
+                <div className="h-40 bg-gray-200 rounded-lg mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          {searchQuery ? `Search Results for "${searchQuery}"` : "All Products"}
-        </h1>
-        <p className="text-gray-600">
-          Showing {products.length} of {totalResults} results
-        </p>
-      </div>
+    <div className="p-4">
+      {products.length === 0 ? (
+        <div className="text-center text-gray-600 py-10">
+          No products found matching your search.
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {products.map((product) => {
+              const discount =
+                product.discount ||
+                (product.mrp > 0
+                  ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+                  : 0);
+              const ratingCount = product.ratingCount || 0;
+              const isAssured = product.isAssured || false;
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <ProductCard key={product._id} product={product} />
-        ))}
-      </div>
+              return (
+                <div
+                  key={product._id}
+                  className="bg-white p-3 rounded-lg border hover:shadow-md transition-shadow relative"
+                >
+                  <div className="absolute top-2 right-2 z-10">
+                    <WishlistButton productId={product._id} />
+                  </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
+                  {/* ✅ Wrap the image and title with Link */}
+                  <Link to={`/product-details/${product._id}`}>
+                    <div className="h-40 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center p-2">
+                      {product.images?.[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.productName}
+                          className="w-full h-full object-contain hover:scale-105 transition-transform duration-200"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-medium text-sm line-clamp-2 mb-1 h-10 text-gray-800 hover:text-blue-600">
+                      {product.productName}
+                    </h3>
+                  </Link>
+
+                  <div className="flex items-center mb-2 gap-2">
+                    {product.brand?.image && (
+                      <img
+                        src={product.brand.image}
+                        alt={product.brand.name || "Brand"}
+                        className="h-4 object-contain"
+                      />
+                    )}
+                    {product.brand?.name && (
+                      <span className="text-xs text-gray-600 hover:text-blue-600">
+                        {product.brand.name}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <div className="flex items-center bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded mr-1">
+                        <span className="text-xs font-semibold">
+                          {product.rating || "0"}
+                        </span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 ml-0.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        ({ratingCount.toLocaleString()})
+                      </span>
+                    </div>
+                    {isAssured && (
+                      <div className="flex items-center bg-blue-600 text-white px-1.5 py-0.5 rounded">
+                        <span className="text-xs font-medium">Assured</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 ml-0.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="flex items-baseline flex-wrap">
+                      <span className="text-lg font-bold text-gray-900">
+                        ₹{product.price?.toLocaleString() || "N/A"}
+                      </span>
+                      {product.mrp > 0 && product.mrp > product.price && (
+                        <>
+                          <span className="text-xs text-gray-500 line-through ml-2">
+                            ₹{product.mrp.toLocaleString()}
+                          </span>
+                          {discount > 0 && (
+                            <span className="text-xs text-green-600 ml-2 font-medium">
+                              {discount}% off
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          <div className="mt-6 flex justify-center items-center space-x-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                  currentPage === pageNum
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

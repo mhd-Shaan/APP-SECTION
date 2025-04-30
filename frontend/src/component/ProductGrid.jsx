@@ -36,6 +36,8 @@ const ProductSlider = () => {
     try {
       const response = await axios.get("http://localhost:5000/products");
       setProducts(response.data.products || []);
+      console.log(response.data.products);
+      
     } catch (error) {
       toast.error(error?.response?.data?.error || "Something went wrong");
     } finally {
@@ -70,7 +72,10 @@ const ProductSlider = () => {
     return Array(5)
       .fill(null)
       .map((_, i) => (
-        <span key={i} className={i < rating ? "text-yellow-500" : "text-gray-300"}>
+        <span
+          key={i}
+          className={i < rating ? "text-yellow-500" : "text-gray-300"}
+        >
           ★
         </span>
       ));
@@ -78,7 +83,9 @@ const ProductSlider = () => {
 
   return (
     <section className="py-12 px-6 bg-[#f4f7fe] relative">
-      <h2 className="text-3xl font-bold text-center text-blue-800 mb-8">Featured Spare Parts</h2>
+      <h2 className="text-3xl font-bold text-center text-blue-800 mb-8">
+        Featured Spare Parts
+      </h2>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -111,25 +118,35 @@ const ProductSlider = () => {
                 <h3 className="text-base font-semibold text-gray-800 text-center line-clamp-1">
                   {item.productName}
                 </h3>
-                <p className="text-sm text-gray-500 text-center mt-1">SKU#: {item.productId}</p>
+                <p className="text-sm text-gray-500 text-center mt-1">
+                  SKU#: {item.productId}
+                </p>
 
-                <div className="flex justify-center mt-1">{renderRatingStars(item.rating)}</div>
+                <div className="flex justify-center mt-1">
+                  {renderRatingStars(item.rating)}
+                </div>
 
                 <div className="flex items-center justify-center mt-2 gap-2">
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/1/18/TVS_logo.svg"
-                    alt={item.spareBrand}
+                    src={item.images} // Dynamically fetched image URL
+                    alt={item.spareBrand} // Brand name as alt text
                     className="w-6 h-6"
                   />
-                  <span className="text-sm text-yellow-700 font-medium">{item.spareBrand}</span>
+                  <span className="text-sm text-yellow-700 font-medium">
+                    {item.spareBrand}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-center gap-3 mt-3">
-                  <span className="text-xl font-bold text-blue-800">₹{item.price}</span>
+                  <span className="text-xl font-bold text-blue-800">
+                    ₹{item.price}
+                  </span>
                   <span className="text-sm text-gray-400 line-through">
                     ₹{(item.price * 1.175).toFixed(2)}
                   </span>
-                  <span className="text-sm text-white bg-blue-500 px-2 py-1 rounded">-15%</span>
+                  <span className="text-sm text-white bg-blue-500 px-2 py-1 rounded">
+                    -15%
+                  </span>
                 </div>
 
                 <div

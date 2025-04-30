@@ -8,7 +8,8 @@ import wishlist from "../models/wishlistSchema.js";
 
 export const productview = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().populate('brand', 'name image');
+
     res.status(200).json({ products });
   } catch (error) {
     console.log(error);
@@ -327,9 +328,7 @@ export const searchquery = async (req, res) => {
     const searchFilter = {
       $or: [
         { productName: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { partType: { $regex: search, $options: "i" } },
-        { spareBrand: { $regex: search, $options: "i" } }
+        // Additional filters can be added here if necessary
       ]
     };
 
@@ -340,7 +339,9 @@ export const searchquery = async (req, res) => {
     const totalproduct = await Product.countDocuments(searchFilter);
     const products = await Product.find(searchFilter)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .populate('brand','name image'); // Populate only 'name' and 'image' fields of the brand
+
 
     res.status(200).json({
       products,

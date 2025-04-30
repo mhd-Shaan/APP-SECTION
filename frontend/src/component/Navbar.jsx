@@ -15,31 +15,31 @@ const Navbar = () => {
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery.trim() !== "") {
-        fetchSearchResults(searchQuery);
-      } else {
-        setShowResults(false);
-      }
-    }, 500);
+  // // Debounce search input
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (searchQuery.trim() !== "") {
+  //       fetchSearchResults(searchQuery);
+  //     } else {
+  //       setShowResults(false);
+  //     }
+  //   }, 500);
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  //   return () => clearTimeout(timer);
+  // }, [searchQuery]);
 
-  const fetchSearchResults = async (query) => {
-    try {
-      // Replace with your actual API call
-      const response = await axios.get(`http://localhost:5000/searchview${query}`,
-      );
-      const data = await response.json();
-      setSearchResults(data);
-      setShowResults(true);
-    } catch (error) {
-      console.log("Search error:", error);
-    }
-  };
+  // const fetchSearchResults = async (query) => {
+  //   try {
+  //     // Replace with your actual API call
+  //     const response = await axios.get(`http://localhost:5000/searchview${query}`,
+  //     );
+  //     const data = await response.json();
+  //     setSearchResults(data);
+  //     setShowResults(true);
+  //   } catch (error) {
+  //     console.log("Search error:", error);
+  //   }
+  // };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
