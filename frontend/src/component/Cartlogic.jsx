@@ -25,7 +25,7 @@ function AddToCartButton({ productId }) {
 
   return (
     <button
-      className={`px-4 py-2 rounded ${added ? 'bg-green-500' : 'bg-blue-500'} text-white`}
+      className={`px-4 py-2 rounded ${added ? 'bg-green-500' : "bg-gray-900"} text-white`}
       onClick={handleAddToCart}
       disabled={loading || added}
     >

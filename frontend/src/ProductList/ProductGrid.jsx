@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import WishlistButton from "@/component/WishlistButton";
@@ -8,6 +8,7 @@ const ProductGrid = () => {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,6 +29,9 @@ const ProductGrid = () => {
         setCurrentPage(response.data.currentPage || 1);
       } catch (error) {
         console.error("Failed to fetch products:", error);
+        setError("Failed to load products. Please try again later.");
+        setProducts([]);
+        setTotalPages(1); // Prevent pagination from showing if there's an error
       } finally {
         setLoading(false);
       }
@@ -41,6 +45,12 @@ const ProductGrid = () => {
     newSearch.set("page", newPage);
     navigate(`${location.pathname}?${newSearch.toString()}`);
   };
+
+  // Memoize pagination buttons
+  const pageNumbers = useMemo(
+    () => Array.from({ length: totalPages }, (_, i) => i + 1),
+    [totalPages]
+  );
 
   if (loading) {
     return (
@@ -61,6 +71,14 @@ const ProductGrid = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-10">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="p-4">
       {products.length === 0 ? (
@@ -72,10 +90,9 @@ const ProductGrid = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map((product) => {
               const discount =
-                product.discount ||
-                (product.mrp > 0
+                product.mrp > 0
                   ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-                  : 0);
+                  : 0;
               const ratingCount = product.ratingCount || 0;
               const isAssured = product.isAssured || false;
 
@@ -88,7 +105,6 @@ const ProductGrid = () => {
                     <WishlistButton productId={product._id} />
                   </div>
 
-                  {/* ✅ Wrap the image and title with Link */}
                   <Link to={`/product-details/${product._id}`}>
                     <div className="h-40 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center p-2">
                       {product.images?.[0] ? (
@@ -103,30 +119,26 @@ const ProductGrid = () => {
                         </div>
                       )}
                     </div>
-                    <h3 className="font-medium text-sm line-clamp-2 mb-1 h-10 text-gray-800 hover:text-blue-600">
+                    <h3 className="ml-3 font-medium text-sm line-clamp-2 text-gray-800 hover:text-blue-600 ">
                       {product.productName}
                     </h3>
                   </Link>
 
-                  <div className="flex items-center mb-2 gap-2">
-                    {product.brand?.image && (
-                      <img
-                        src={product.brand.image}
-                        alt={product.brand.name || "Brand"}
-                        className="h-4 object-contain"
-                      />
-                    )}
-                    {product.brand?.name && (
-                      <span className="text-xs text-gray-600 hover:text-blue-600">
-                        {product.brand.name}
-                      </span>
-                    )}
-                  </div>
+                  {product.brand?.image && (
+  <div className=""> {/* Adjusted margin-right */}
+    <img
+      src={product.brand.image}
+      alt={product.brand.name || "Brand"}
+      className="w-20 h-auto object-contain"
+    />
+  </div>
+)}
+
 
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
+                    <div className="ml-3 flex items-center">
                       <div className="flex items-center bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded mr-1">
-                        <span className="text-xs font-semibold">
+                        <span className=" text-xs font-semibold">
                           {product.rating || "0"}
                         </span>
                         <svg
@@ -153,7 +165,7 @@ const ProductGrid = () => {
                         >
                           <path
                             fillRule="evenodd"
-                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 000-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                             clipRule="evenodd"
                           />
                         </svg>
@@ -163,7 +175,7 @@ const ProductGrid = () => {
 
                   <div className="mb-3">
                     <div className="flex items-baseline flex-wrap">
-                      <span className="text-lg font-bold text-gray-900">
+                      <span className="ml-3 text-lg font-bold text-gray-900">
                         ₹{product.price?.toLocaleString() || "N/A"}
                       </span>
                       {product.mrp > 0 && product.mrp > product.price && (
@@ -187,7 +199,7 @@ const ProductGrid = () => {
 
           {/* Pagination */}
           <div className="mt-6 flex justify-center items-center space-x-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+            {pageNumbers.map((pageNum) => (
               <button
                 key={pageNum}
                 onClick={() => handlePageChange(pageNum)}

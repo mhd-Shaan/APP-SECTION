@@ -8,7 +8,9 @@ import wishlist from "../models/wishlistSchema.js";
 
 export const productview = async (req, res) => {
   try {
-    const products = await Product.find().populate('brand', 'name image');
+    const products = await Product.find()
+      .populate("brand", "name image")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ products });
   } catch (error) {
@@ -28,45 +30,40 @@ export const categoryshow = async (req, res) => {
 };
 
 export const brandsshow = async (req, res) => {
-    try {
-      // Check and parse limit from query params
-      const oeslimit = req.query.oesLimit ? parseInt(req.query.oesLimit) : null;
-      const oemlimit = req.query.oemLimit ? parseInt(req.query.oemLimit) : null;
-      
-      
-  
-      // Count total OEM and OES brands
-      const [oemcount, oescount] = await Promise.all([
-        Brands.countDocuments({ isBlocked: false, type: 'OEM' }),
-        Brands.countDocuments({ isBlocked: false, type: 'OES' }),
-      ]);
-  
-      // Create base queries
-      const oemQuery = Brands.find({ isBlocked: false, type: 'OEM' }).limit(Number(oemlimit));
+  try {
+    // Check and parse limit from query params
+    const oeslimit = req.query.oesLimit ? parseInt(req.query.oesLimit) : null;
+    const oemlimit = req.query.oemLimit ? parseInt(req.query.oemLimit) : null;
 
-      const oesQuery = Brands.find({ isBlocked: false, type: 'OES' }).limit(Number(oeslimit));
-    
-  
-      const [oemBrands, oesBrands] = await Promise.all([
-        oemQuery,
-        oesQuery,
-      ]);
+    // Count total OEM and OES brands
+    const [oemcount, oescount] = await Promise.all([
+      Brands.countDocuments({ isBlocked: false, type: "OEM" }),
+      Brands.countDocuments({ isBlocked: false, type: "OES" }),
+    ]);
 
-  
-      // Send response
-      res.status(200).json({
-        oem: oemBrands,
-        oes: oesBrands,
-        oemcount,
-        oescount,
-      });
-    } catch (error) {
-      console.error("Error fetching brands:", error);
-      res.status(500).json({ error: "Error fetching brands" });
-    }
-  };
-  
-  
+    // Create base queries
+    const oemQuery = Brands.find({ isBlocked: false, type: "OEM" }).limit(
+      Number(oemlimit)
+    );
+
+    const oesQuery = Brands.find({ isBlocked: false, type: "OES" }).limit(
+      Number(oeslimit)
+    );
+
+    const [oemBrands, oesBrands] = await Promise.all([oemQuery, oesQuery]);
+
+    // Send response
+    res.status(200).json({
+      oem: oemBrands,
+      oes: oesBrands,
+      oemcount,
+      oescount,
+    });
+  } catch (error) {
+    console.error("Error fetching brands:", error);
+    res.status(500).json({ error: "Error fetching brands" });
+  }
+};
 
 export const SubCategoryShow = async (req, res) => {
   try {
@@ -94,18 +91,15 @@ export const SubCategoryShow = async (req, res) => {
   }
 };
 
-
-
 export const addwishlist = async (req, res) => {
   try {
-    const userId =  req.User
-    
+    const userId = req.User;
+
     const { productId } = req.body;
     console.log(productId);
-    
 
     if (!productId) {
-      return res.status(400).json({ message: 'Product ID is required' });
+      return res.status(400).json({ message: "Product ID is required" });
     }
 
     let wishlist = await Wishlist.findOne({ user: userId });
@@ -114,16 +108,16 @@ export const addwishlist = async (req, res) => {
       // If no wishlist exists, create one
       wishlist = new Wishlist({
         user: userId,
-        items: [{ product: productId }]
+        items: [{ product: productId }],
       });
     } else {
       // Check if the product is already in the wishlist
-      const alreadyExists = wishlist.items.some(item =>
-        item.product.toString() === productId
+      const alreadyExists = wishlist.items.some(
+        (item) => item.product.toString() === productId
       );
 
       if (alreadyExists) {
-        return res.status(409).json({ message: 'Product already in wishlist' });
+        return res.status(409).json({ message: "Product already in wishlist" });
       }
 
       // Add the product to the wishlist
@@ -131,22 +125,20 @@ export const addwishlist = async (req, res) => {
     }
 
     await wishlist.save();
-    res.status(200).json({ message: 'Product added to wishlist', wishlist });
-
+    res.status(200).json({ message: "Product added to wishlist", wishlist });
   } catch (error) {
-    console.error('Error adding to wishlist:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error adding to wishlist:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 export const showwishlist = async (req, res) => {
   try {
     const userId = req.User;
 
-    const showproducts = await Wishlist.findOne({ user: userId })
-      .populate("items.product"); 
+    const showproducts = await Wishlist.findOne({ user: userId }).populate(
+      "items.product"
+    );
 
     if (!showproducts) {
       return res.status(404).json({ error: "No wishlist found" });
@@ -159,24 +151,29 @@ export const showwishlist = async (req, res) => {
   }
 };
 
-
 export const deletewishlist = async (req, res) => {
   try {
-    const itemId = req.params.id; 
+    const itemId = req.params.id;
     const updatedWishlist = await Wishlist.findOneAndUpdate(
-      { 'items._id': itemId },
+      { "items._id": itemId },
       { $pull: { items: { _id: itemId } } },
       { new: true }
     );
 
     if (!updatedWishlist) {
-      return res.status(404).json({ success: false, message: 'Wishlist item not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Wishlist item not found" });
     }
 
-    res.status(200).json({ success: true, message: 'Item removed from wishlist', wishlist: updatedWishlist });
+    res.status(200).json({
+      success: true,
+      message: "Item removed from wishlist",
+      wishlist: updatedWishlist,
+    });
   } catch (error) {
-    console.error('Error deleting wishlist item:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    console.error("Error deleting wishlist item:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -184,13 +181,15 @@ export const addcart = async (req, res) => {
   try {
     const userId = req.User._id;
     console.log("Authenticated User ID:", userId); // Debugging line
-    
+
     const { productId, quantity } = req.body;
 
     // Validate product existence
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     // Check for existing cart
@@ -209,7 +208,9 @@ export const addcart = async (req, res) => {
       });
     } else {
       // Check if product already in cart
-      const existingItem = cart.items.find(item => item.product.toString() === productId);
+      const existingItem = cart.items.find(
+        (item) => item.product.toString() === productId
+      );
 
       if (existingItem) {
         // Update quantity
@@ -226,14 +227,14 @@ export const addcart = async (req, res) => {
 
     await cart.save();
 
-    return res.status(200).json({ success: true, message: "Product added to cart", cart });
-
+    return res
+      .status(200)
+      .json({ success: true, message: "Product added to cart", cart });
   } catch (error) {
     console.error("Add to cart error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
 
 export const viewCart = async (req, res) => {
   try {
@@ -242,7 +243,9 @@ export const viewCart = async (req, res) => {
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
     if (!cart || cart.items.length === 0) {
-      return res.status(200).json({ success: true, cart: [], message: "Cart is empty" });
+      return res
+        .status(200)
+        .json({ success: true, cart: [], message: "Cart is empty" });
     }
 
     res.status(200).json({ success: true, cart });
@@ -278,10 +281,8 @@ export const viewCart = async (req, res) => {
 export const removeCartItem = async (req, res) => {
   try {
     const userId = req.User._id;
-    
+
     const itemId = req.params.id;
-    
-    
 
     const cart = await Cart.findOneAndUpdate(
       { user: userId },
@@ -290,22 +291,29 @@ export const removeCartItem = async (req, res) => {
     );
 
     if (!cart) {
-      return res.status(404).json({ success: false, message: "Cart not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Cart not found" });
     }
 
-    res.status(200).json({ success: true, message: "Item removed from cart", cart });
+    res
+      .status(200)
+      .json({ success: true, message: "Item removed from cart", cart });
   } catch (error) {
     console.error("Remove cart item error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
-
 export const productviewbyid = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
 
-    const products = await Product.findById(id); 
+    const products = await Product.findById(id)
+      .populate("brand", "image name")
+      .populate("category", "name")
+      .exec();
+
     res.status(200).json({ products });
   } catch (error) {
     console.log(error);
@@ -313,15 +321,9 @@ export const productviewbyid = async (req, res) => {
   }
 };
 
-
 export const searchquery = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      search = "",
-      filter = ""
-    } = req.query;
+    const { page = 1, limit = 10, search = "", filter = "" } = req.query;
 
     const skip = (page - 1) * limit;
 
@@ -329,7 +331,7 @@ export const searchquery = async (req, res) => {
       $or: [
         { productName: { $regex: search, $options: "i" } },
         // Additional filters can be added here if necessary
-      ]
+      ],
     };
 
     if (!search.trim()) {
@@ -340,8 +342,7 @@ export const searchquery = async (req, res) => {
     const products = await Product.find(searchFilter)
       .skip(skip)
       .limit(Number(limit))
-      .populate('brand','name image'); // Populate only 'name' and 'image' fields of the brand
-
+      .populate("brand", "name image"); // Populate only 'name' and 'image' fields of the brand
 
     res.status(200).json({
       products,
