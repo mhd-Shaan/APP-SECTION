@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Heart, HeartFill } from "react-bootstrap-icons"; // Or any other icon library
+import { useNavigate } from "react-router-dom";
 
 const WishlistButton = ({ productId }) => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const navigate = useNavigate()
   const handleAddToWishlist = async () => {
     try {
       setIsAnimating(true);
@@ -27,11 +29,12 @@ const WishlistButton = ({ productId }) => {
       });
     } catch (error) {
       if (error?.response?.status === 401) {
-        toast.error("Please log in to add items to your wishlist.", {
-          icon: '🔒',
-        });
+        navigate('/login')
+        
       } else {
         toast.error(error?.response?.data?.error || "Failed to add to wishlist");
+        console.log(error);
+        
       }
     } finally {
       setTimeout(() => setIsAnimating(false), 500);

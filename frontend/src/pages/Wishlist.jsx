@@ -3,6 +3,8 @@ import { Heart, ShoppingCart, X, Check } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Navbar from '@/component/Navbar';
+import Footer from '@/component/Footer';
 
 function Wishlist() {
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -89,7 +91,9 @@ function Wishlist() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <>
+    <Navbar/>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-18">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Your Wishlist</h1>
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800">
@@ -208,6 +212,9 @@ function Wishlist() {
         </div>
       )}
     </div>
+    <Footer/>
+    </>
+
   );
 }
 

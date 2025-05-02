@@ -1,3 +1,4 @@
+import { error } from "console";
 import Brands from "../models/BrandSchema.js";
 import Cart from "../models/CartSchema.js";
 import Category from "../models/CatgoerySchema.js";
@@ -117,7 +118,7 @@ export const addwishlist = async (req, res) => {
       );
 
       if (alreadyExists) {
-        return res.status(409).json({ message: "Product already in wishlist" });
+        return res.status(409).json({ error: "Product already in wishlist" });
       }
 
       // Add the product to the wishlist

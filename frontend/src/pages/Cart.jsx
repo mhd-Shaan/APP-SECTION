@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Navbar from '@/component/Navbar';
+import Footer from '@/component/Footer';
 
 function Cart() {
   const [cart, setCart] = useState([]);
@@ -59,7 +61,9 @@ function Cart() {
   if (loading) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
+    <>
+    <Navbar/>
+    <div className="p-4 max-w-4xl mx-auto pt-18">
       <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
       {cart.length === 0 ? (
         <p className="text-gray-500">Your cart is empty.</p>
@@ -116,6 +120,8 @@ function Cart() {
         </div>
       )}
     </div>
+    <Footer/>
+    </>
   );
 }
 
