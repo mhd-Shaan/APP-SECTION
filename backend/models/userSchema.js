@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,6 +18,9 @@ const userSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
+    },
+    city:{
+      type:String,
     },
     address: { type: String },
     profileImage: { type: String }, // URL to the profile image

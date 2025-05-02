@@ -16,7 +16,7 @@ const WishlistButton = ({ productId }) => {
       await axios.post(
         "http://localhost:5000/addwishlist",
         { productId },
-        { withCredentials: true }
+        {withCredentials:true}
       );
       
       setIsInWishlist(true);
@@ -30,6 +30,7 @@ const WishlistButton = ({ productId }) => {
     } catch (error) {
       if (error?.response?.status === 401) {
         navigate('/login')
+        console.log(error);
         
       } else {
         toast.error(error?.response?.data?.error || "Failed to add to wishlist");

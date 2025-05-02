@@ -5,7 +5,8 @@ import Category from "../models/CatgoerySchema.js";
 import Product from "../models/productschema.js";
 import SubCategory from "../models/SubCatgoery.js";
 import Wishlist from "../models/wishlistSchema.js";
-import wishlist from "../models/wishlistSchema.js";
+import mongoose from "mongoose";
+
 
 export const productview = async (req, res) => {
   try {
@@ -96,8 +97,10 @@ export const addwishlist = async (req, res) => {
   try {
     const userId = req.User;
 
+    if(!userId){
+      return res.status(401).json({error:"login is required"})
+    }
     const { productId } = req.body;
-    console.log(productId);
 
     if (!productId) {
       return res.status(400).json({ message: "Product ID is required" });
@@ -112,7 +115,6 @@ export const addwishlist = async (req, res) => {
         items: [{ product: productId }],
       });
     } else {
-      // Check if the product is already in the wishlist
       const alreadyExists = wishlist.items.some(
         (item) => item.product.toString() === productId
       );
@@ -180,8 +182,12 @@ export const deletewishlist = async (req, res) => {
 
 export const addcart = async (req, res) => {
   try {
+    if (!req.User || !req.User._id) {
+      return res.status(401).json({ error: "Login is required" });
+    }
+    
     const userId = req.User._id;
-    console.log("Authenticated User ID:", userId); // Debugging line
+    
 
     const { productId, quantity } = req.body;
 
@@ -322,28 +328,52 @@ export const productviewbyid = async (req, res) => {
   }
 };
 
+
 export const searchquery = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "", filter = "" } = req.query;
-
+    const { page = 1, limit = 10, search = "", filters = {} } = req.query;
     const skip = (page - 1) * limit;
 
-    const searchFilter = {
-      $or: [
-        { productName: { $regex: search, $options: "i" } },
-        // Additional filters can be added here if necessary
-      ],
-    };
-
-    if (!search.trim()) {
-      delete searchFilter.$or;
+    // Parse filters if sent as a string
+    let parsedFilters = filters;
+    if (typeof filters === "string") {
+      parsedFilters = JSON.parse(filters);
     }
 
-    const totalproduct = await Product.countDocuments(searchFilter);
-    const products = await Product.find(searchFilter)
+    const { categories = [], brands = [], minPrice = "", maxPrice = "" } = parsedFilters;
+    const query = {};
+
+    // Search filter
+    if (search?.trim()) {
+      query.productName = { $regex: search, $options: "i" };
+    }
+
+    // Category filter
+    if (Array.isArray(categories) && categories.length > 0) {
+      query.category = { $in: categories };
+    }
+
+    // Brand name filter — convert names to ObjectIds
+    if (Array.isArray(brands) && brands.length > 0) {
+      const brandDocs = await Brands.find({ name: { $in: brands } }, "_id");
+      const brandIds = brandDocs.map(b => b._id);
+      query.brand = { $in: brandIds };
+    }
+
+
+
+    // Price filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    const totalproduct = await Product.countDocuments(query);
+    const products = await Product.find(query)
       .skip(skip)
       .limit(Number(limit))
-      .populate("brand", "name image"); // Populate only 'name' and 'image' fields of the brand
+      .populate("brand", "name image");
 
     res.status(200).json({
       products,

@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const SidebarFilters = ({ onFilterChange = () => {} }) => {
-  // Initialize all states with proper default values
   const [categories, setCategories] = useState([]);
   const [oemBrands, setOemBrands] = useState([]);
   const [oesBrands, setOesBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   
-  // Filter states
+  
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [selectedCategories, setSelectedCategories] = useState([]);
+  
   const [selectedBrands, setSelectedBrands] = useState([]);
   
-  // Toggle states for sections
   const [showCategories, setShowCategories] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
   const [showBrands, setShowBrands] = useState(true);
@@ -22,7 +22,9 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
 
   // Fetch categories and brands from backend with proper error handling
   useEffect(() => {
+    
     const fetchFilters = async () => {
+      
       try {
         setLoading(true);
         setError(null);
@@ -69,14 +71,15 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
   };
 
   // Handle brand selection
-  const handleBrandChange = (brandId, isChecked) => {
+  const handleBrandChange = (brandName, isChecked) => {
     const updatedBrands = isChecked 
-      ? [...selectedBrands, brandId] 
-      : selectedBrands.filter(id => id !== brandId);
+      ? [...selectedBrands, brandName] 
+      : selectedBrands.filter(name => name !== brandName);
     
     setSelectedBrands(updatedBrands);
     updateFilters({ brands: updatedBrands });
   };
+
 
   // Handle price range change
   const handlePriceChange = (e, type) => {
@@ -97,7 +100,7 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
   const updateFilters = (updatedFilters) => {
     onFilterChange({
       categories: selectedCategories,
-      brands: selectedBrands,
+      brands: selectedBrands, // Now contains brand names
       minPrice: priceRange.min,
       maxPrice: priceRange.max,
       ...updatedFilters
@@ -264,15 +267,15 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
                   <h4 className="font-semibold text-xs mb-1 text-gray-600">OEM BRANDS</h4>
                   <div className="space-y-1">
                     {oemBrands.map(brand => (
-                      <div key={brand._id || brand.id} className="flex items-center">
+                      <div key={brand.name} className="flex items-center">
                         <input
                           type="checkbox"
-                          id={`oem-brand-${brand._id || brand.id}`}
+                          id={`oem-brand-${brand.name}`}
                           className="h-3.5 w-3.5 mr-2"
-                          checked={selectedBrands.includes(brand._id || brand.id)}
-                          onChange={(e) => handleBrandChange(brand._id || brand.id, e.target.checked)}
+                          checked={selectedBrands.includes(brand.name)}
+                          onChange={(e) => handleBrandChange(brand.name, e.target.checked)}
                         />
-                        <label htmlFor={`oem-brand-${brand._id || brand.id}`} className="text-sm">
+                        <label htmlFor={`oem-brand-${brand.name}`} className="text-sm">
                           {brand.name}
                         </label>
                       </div>
@@ -281,21 +284,20 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
                 </div>
               )}
 
-              {/* OES Brands Subsection */}
               {oesBrands.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-xs mb-1 text-gray-600">OES BRANDS</h4>
                   <div className="space-y-1">
                     {oesBrands.map(brand => (
-                      <div key={brand._id || brand.id} className="flex items-center">
+                      <div key={brand.name} className="flex items-center">
                         <input
                           type="checkbox"
-                          id={`oes-brand-${brand._id || brand.id}`}
+                          id={`oes-brand-${brand.name}`}
                           className="h-3.5 w-3.5 mr-2"
-                          checked={selectedBrands.includes(brand._id || brand.id)}
-                          onChange={(e) => handleBrandChange(brand._id || brand.id, e.target.checked)}
+                          checked={selectedBrands.includes(brand.name)}
+                          onChange={(e) => handleBrandChange(brand.name, e.target.checked)}
                         />
-                        <label htmlFor={`oes-brand-${brand._id || brand.id}`} className="text-sm">
+                        <label htmlFor={`oes-brand-${brand.name}`} className="text-sm">
                           {brand.name}
                         </label>
                       </div>
@@ -304,7 +306,6 @@ const SidebarFilters = ({ onFilterChange = () => {} }) => {
                 </div>
               )}
 
-              {/* No brands message */}
               {oemBrands.length === 0 && oesBrands.length === 0 && (
                 <p className="text-xs text-gray-500">No brands available</p>
               )}

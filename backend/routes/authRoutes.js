@@ -1,5 +1,5 @@
 import express from 'express';
-import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword} from '../controllers/authController.js'
+import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword, CityAdding, ViewCity} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
 import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
 
@@ -9,6 +9,8 @@ const router = express.Router();
 router.post('/registeruser',registerUser)
 router.post('/verify-otp', verifyOTP);  
 router.post('/loginusers',loginUsers)
+router.put('/updatecity',protectRouteuser,CityAdding)
+router.get('/viewcity',ViewCity)
 router.get('/userdetails',protectRouteuser,checkAuth)
 router.get('/products',productview)
 router.get('/category',categoryshow)

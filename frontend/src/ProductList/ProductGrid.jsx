@@ -2,8 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import WishlistButton from "@/component/WishlistButton";
+import SidebarFilters from "./SidebarFilters";
 
-const ProductGrid = () => {
+const ProductGrid = ({ filters }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
@@ -16,12 +17,14 @@ const ProductGrid = () => {
   const query = searchParams.get("q");
   const page = parseInt(searchParams.get("page")) || 1;
 
+  
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const response = await axios.get("http://localhost:5000/searchview", {
-          params: { search: query, page },
+          params: { search: query, page,filters },
         });
 
         setProducts(response.data.products || []);
@@ -38,7 +41,7 @@ const ProductGrid = () => {
     };
 
     fetchProducts();
-  }, [query, page]);
+  }, [query, page,filters]);
 
   const handlePageChange = (newPage) => {
     const newSearch = new URLSearchParams(location.search);
@@ -51,6 +54,39 @@ const ProductGrid = () => {
     () => Array.from({ length: totalPages }, (_, i) => i + 1),
     [totalPages]
   );
+
+
+  const handlefilterchange = async(filters)=>{
+    try {
+      setLoading(true);
+      
+      // Convert filters to query parameters
+      const params = new URLSearchParams();
+      
+      if (filters.categories?.length > 0) {
+        params.append('categories', filters.categories.join(','));
+      }
+      
+      if (filters.brands?.length > 0) {
+        params.append('brands', filters.brands.join(','));
+      }
+      
+      if (filters.minPrice) {
+        params.append('minPrice', filters.minPrice);
+      }
+      
+      if (filters.maxPrice) {
+        params.append('maxPrice', filters.maxPrice);
+      }
+      
+      const response = await axios.get(`http://localhost:5000/products?${params.toString()}`);
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching filtered products:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -81,6 +117,7 @@ const ProductGrid = () => {
 
   return (
     <div className="p-4">
+
       {products.length === 0 ? (
         <div className="text-center text-gray-600 py-10">
           No products found matching your search.

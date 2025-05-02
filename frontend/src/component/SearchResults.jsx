@@ -4,8 +4,16 @@ import SidebarFilters from "@/ProductList/SidebarFilters";
 import Breadcrumbs from "@/ProductList/Breadcrumbs";
 import SortOptions from "@/ProductList/SortOptions";
 import ProductGrid from "@/ProductList/ProductGrid";
+import { useEffect, useState } from "react";
 
 const MainLayout = () => {
+  const [filters, setFilters] = useState({});
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+ 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Sticky Navbar */}
@@ -19,7 +27,7 @@ const MainLayout = () => {
       <div className="flex flex-1">
         {/* Sidebar Filters */}
         <div className="w-1/5 bg-white border-r px-4 pt-12">
-          <SidebarFilters />
+        <SidebarFilters onFilterChange={handleFilterChange} />
         </div>
 
         {/* Main Content */}
@@ -28,7 +36,7 @@ const MainLayout = () => {
           <SortOptions /> */}
 
           <div className="py-4">
-            <ProductGrid />
+          <ProductGrid filters={filters} />
           </div>
         </main>
       </div>

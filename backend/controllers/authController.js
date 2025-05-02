@@ -5,6 +5,7 @@ import { sendOTP } from "../helpers/emailService.js";
 import Tempusers from "../models/tempuserschema.js";
 import jwt from "jsonwebtoken";
 import OtpVerification from "../models/otpschema.js";
+import Location from "../models/LocationSchema.js";
 
 const { hashPassword, comparePassword } = authHelper;
 
@@ -239,3 +240,43 @@ export const updatePassword = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+export const CityAdding = async (req, res) => {
+  try {
+
+    const userid = req.User._id
+    const { city } = req.body;
+    
+
+    if (!city) {
+      return res.status(400).json({ error: "City is required" });
+    }
+
+    if (!userid|| !req.User._id) {
+      return res.status(401).json({ error: "Unauthorized: User not found" });
+    }
+
+    const updatedUser = await Users.findByIdAndUpdate(
+      userid,
+      { city },
+      { new: true }
+    );
+
+    return res.status(200).json({ success: true, message: "City updated", user: updatedUser });
+  } catch (error) {
+    console.error("City update error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+export const ViewCity = async(req,res)=>{
+  try {
+    const viewcity = await Location.find()
+    return res.status(200).json({ success: true, message: "City updated", viewcity });
+  } catch (error) {
+    console.log("City view error:", error);
+    return res.status(500).json({error});
+  }
+}

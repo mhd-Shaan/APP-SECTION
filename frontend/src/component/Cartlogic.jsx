@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function AddToCartButton({ productId }) {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
 
+
+  const navigate =useNavigate()
   const handleAddToCart = async () => {
     setLoading(true);
     
@@ -17,8 +20,15 @@ function AddToCartButton({ productId }) {
       setAdded(true);
       
     } catch (error) {
-      console.log('Error adding to cart:', error);
+      if(error.response?.status === 401){
+        navigate('/login')
+        console.log(error);
+        
+      }else{
+        console.log('Error adding to cart:', error);
+      }
     } finally {
+      
       setLoading(false);
     }
   };
