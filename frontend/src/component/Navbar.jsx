@@ -24,12 +24,9 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchCities();
-    console.log(user?.city);
-    
-    // if (user?.city) {
-    //   setSelectedCity(user.city);
-    // }
-  }, [user?.city,selectedCity]); 
+
+  }, [selectedCity]); 
+  
   const fetchCities = async () => {
     try {
       const response = await axios.get("http://localhost:5000/viewcity");
@@ -54,6 +51,8 @@ const Navbar = () => {
       
       // Update local state with the new city from response
       setSelectedCity(data.user.city);
+          window.location.reload(); 
+
       toast.success(`Location updated to ${data.user.city}`);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -85,6 +84,7 @@ const Navbar = () => {
     }
     await updateUserCity(city);
   };
+
 
 
   return (

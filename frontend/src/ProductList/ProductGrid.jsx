@@ -20,6 +20,7 @@ const ProductGrid = ({ filters }) => {
   const searchParams = new URLSearchParams(location.search);
   const query = searchParams.get("q");
   const city = searchParams.get("city");
+  
 
   const page = parseInt(searchParams.get("page")) || 1;
 
