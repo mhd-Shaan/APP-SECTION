@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { loginuser, logoutuser } from "../redux/userslice.js"; // ✅ Fixed Path
+import { loginuser, logoutuser, updateUserCity } from "../redux/userslice.js";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 
 function useCheckAuth() {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(true); // ✅ Added loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -13,8 +13,13 @@ function useCheckAuth() {
         const res = await axios.get("http://localhost:5000/userdetails", {
           withCredentials: true,
         });
+
         if (res.status === 200) {
           dispatch(loginuser(res.data));
+          
+          if (res.data.city) {
+            dispatch(updateUserCity(res.data.city));
+          }
         } else {
           dispatch(logoutuser());
         }
@@ -22,14 +27,14 @@ function useCheckAuth() {
         console.log(error);
         dispatch(logoutuser());
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     checkAuth();
-  }, [dispatch]); 
+  }, [dispatch]);
 
-  return { loading }; 
+  return { loading };
 }
 
 export default useCheckAuth;

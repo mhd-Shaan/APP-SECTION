@@ -11,11 +11,69 @@ import Stores from "../models/StoreSchema.js";
 
 export const productview = async (req, res) => {
   try {
-    const products = await Product.find()
+
+    const { city = "" } = req.query;
+
+    const query = {};
+
+    if (city) {
+      const cityStores = await Stores.find({ city }, '_id');  
+
+      if (cityStores.length === 0) {
+        return res.status(401).json({ error: "Coming soon" })
+      }
+      
+      const storeIds = cityStores.map(store => store._id);
+
+      if (storeIds.length > 0) {
+        query.store = { $in: storeIds };
+        
+        
+      } else {
+        return res.status(200).json({
+          products: [],
+          currentPage: Number(page),
+          totalPages: 0,
+          totalproduct: 0,
+        });
+      }
+    }
+
+
+
+    // // Price filter
+    // if (minPrice || maxPrice) {
+    //   query.price = {};
+    //   if (minPrice) query.price.$gte = parseFloat(minPrice);
+    //   if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    // }
+    
+
+    // Querying the products
+    const totalproduct = await Product.countDocuments(query);
+    
+    const products = await Product.find(query)
+      // .skip(skip)
+      // .limit(Number(limit))
       .populate("brand", "name image")
+      .populate("store", "city")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ products });
+      // if(products <0){
+      //   return res.status(404).json({error:"this city have no products"})
+      // }
+
+    res.status(200).json({
+      products,
+      // currentPage: Number(page),
+      // totalPages: Math.ceil(totalproduct / limit),
+      totalproduct,
+    });
+    // const products = await Product.find()
+    //   .populate("brand", "name image")
+    //   .sort({ createdAt: -1 });
+
+    // res.status(200).json({ products });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "error on fetching products" });
@@ -343,6 +401,7 @@ export const searchquery = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = "", filters = {}, city = "" } = req.query;
     const skip = (page - 1) * limit;
+    
 
     let parsedFilters = filters;
     if (typeof filters === "string") {
@@ -369,16 +428,21 @@ export const searchquery = async (req, res) => {
       query.brand = { $in: brandIds };
     }
 
-    // City filter — filter products based on store's city
     if (city) {
-      const cityStores = await Stores.find({ city });
-      console.log('citystore',cityStores);
+      const cityStores = await Stores.find({ city }, '_id');  
+
+      if (cityStores.length === 0) {
+        return res.status(404).json({ error: "Coming soon" })
+      }
       
+      
+          
       const storeIds = cityStores.map(store => store._id);
-      console.log('storeid',storeIds);
 
       if (storeIds.length > 0) {
         query.store = { $in: storeIds };
+        
+        
       } else {
         return res.status(200).json({
           products: [],
@@ -389,20 +453,28 @@ export const searchquery = async (req, res) => {
       }
     }
 
+
+
     // Price filter
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = parseFloat(minPrice);
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
+    
 
     // Querying the products
     const totalproduct = await Product.countDocuments(query);
+    
     const products = await Product.find(query)
       .skip(skip)
       .limit(Number(limit))
       .populate("brand", "name image")
       .populate("store", "city");
+
+      // if(products <0){
+      //   return res.status(404).json({error:"this city have no products"})
+      // }
 
     res.status(200).json({
       products,

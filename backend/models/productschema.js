@@ -4,10 +4,10 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    storeid: {
-      type: String,
-      required: true,
-    },
+    // storeid: {
+    //   type: String,
+    //   required: true,
+    // },
     vehicleType: {
       type: String,
       required: true,

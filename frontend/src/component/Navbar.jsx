@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SearchResults from "./SearchResults";
 import axios from "axios";
-
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.user);
@@ -15,7 +15,7 @@ const Navbar = () => {
   const [showResults, setShowResults] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [cities, setCities] = useState([]);
-  const [selectedCity, setSelectedCity] = useState(user?.city || "");
+  const [selectedCity, setSelectedCity] = useState(user?.city||'');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [isUpdatingCity, setIsUpdatingCity] = useState(false);
   const navigate = useNavigate();
@@ -24,34 +24,48 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchCities();
-  }, []);
-
+    console.log(user?.city);
+    
+    // if (user?.city) {
+    //   setSelectedCity(user.city);
+    // }
+  }, [user?.city,selectedCity]); 
   const fetchCities = async () => {
     try {
       const response = await axios.get("http://localhost:5000/viewcity");
       setCities(response.data.viewcity || []);
     } catch (error) {
       console.error("Failed to fetch cities:", error);
+      toast.error("Failed to load cities");
       setCities([]);
     }
   };
 
   const updateUserCity = async (city) => {
+    if (!city) return;
+    
     try {
       setIsUpdatingCity(true);
-      await axios.put(
+      const { data } = await axios.put(
         "http://localhost:5000/updatecity",
         { city },
         { withCredentials: true }
       );
+      
+      // Update local state with the new city from response
+      setSelectedCity(data.user.city);
+      toast.success(`Location updated to ${data.user.city}`);
     } catch (error) {
       if (error.response?.status === 401) {
         navigate('/login');
+        toast.error("Please login to change location");
       } else {
-        console.log("Failed to update city:", error);
+        console.error("Failed to update city:", error);
+        toast.error("Failed to update location");
       }
     } finally {
       setIsUpdatingCity(false);
+      setShowCityDropdown(false);
     }
   };
 
@@ -65,10 +79,13 @@ const Navbar = () => {
   };
 
   const handleCityChange = async (city) => {
-    setSelectedCity(city);
-    setShowCityDropdown(false);
+    if (city === selectedCity) {
+      setShowCityDropdown(false);
+      return;
+    }
     await updateUserCity(city);
   };
+
 
   return (
     <div className="fixed top-0 left-0 w-full bg-yellow-500 backdrop-blur-lg shadow-lg border-b border-yellow-600 z-50">
@@ -153,38 +170,46 @@ const Navbar = () => {
 
           {/* City Dropdown */}
           <div className="relative ml-2 lg:ml-4 w-40 lg:w-48">
-            <button
-              onClick={() => setShowCityDropdown(!showCityDropdown)}
-              className={`flex items-center justify-between w-full bg-white border-2 border-yellow-400 rounded-full px-3 lg:px-4 py-1.5 text-black shadow-sm transition-colors ${showCityDropdown ? 'bg-yellow-50' : 'hover:bg-yellow-50'}`}
-              disabled={isUpdatingCity}
-            >
-              <div className="flex items-center">
-                <MapPin size={16} className="mr-1 lg:mr-2 text-yellow-600" />
-                <span className="truncate text-sm lg:text-base">
-                  {isUpdatingCity ? "Updating..." : selectedCity || "Select City"}
-                </span>
-              </div>
-              <ChevronDown 
-                size={16} 
-                className={`ml-1 transition-transform ${showCityDropdown ? 'rotate-180' : ''}`} 
-              />
-            </button>
-            
-            {showCityDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-200">
-                {cities.map((city) => (
-                  <div
-                    key={city._id}
-                    className={`px-3 lg:px-4 py-2 hover:bg-yellow-50 cursor-pointer flex items-center text-sm lg:text-base ${selectedCity === city.city ? 'bg-yellow-100' : ''}`}
-                    onClick={() => handleCityChange(city.city)}
-                  >
-                    <MapPin size={14} className="mr-1 lg:mr-2 text-yellow-600" />
-                    <span className="truncate">{city.city}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => setShowCityDropdown(!showCityDropdown)}
+            className={`flex items-center justify-between w-full bg-white border-2 border-yellow-400 rounded-full px-3 lg:px-4 py-1.5 text-black shadow-sm transition-colors ${
+              showCityDropdown ? 'bg-yellow-50' : 'hover:bg-yellow-50'
+            } ${isUpdatingCity ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={isUpdatingCity}
+          >
+            <div className="flex items-center">
+              <MapPin size={16} className="mr-1 lg:mr-2 text-yellow-600" />
+              <span className="truncate text-sm lg:text-base">
+                {isUpdatingCity ? (
+                  <span className="animate-pulse">Updating...</span>
+                ) : selectedCity || "Select City"}
+              </span>
+            </div>
+            <ChevronDown 
+              size={16} 
+              className={`ml-1 transition-transform ${
+                showCityDropdown ? 'rotate-180' : ''
+              } ${isUpdatingCity ? 'animate-bounce' : ''}`} 
+            />
+          </button>
+          
+          {showCityDropdown && (
+            <div className="absolute top-full left-0 mt-1 w-full bg-white rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-200">
+              {cities.map((city) => (
+                <div
+                  key={city._id}
+                  className={`px-3 lg:px-4 py-2 hover:bg-yellow-50 cursor-pointer flex items-center text-sm lg:text-base ${
+                    selectedCity === city.city ? 'bg-yellow-100 font-medium' : ''
+                  }`}
+                  onClick={() => handleCityChange(city.city)}
+                >
+                  <MapPin size={14} className="mr-1 lg:mr-2 text-yellow-600" />
+                  <span className="truncate">{city.city}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         </div>
 
         {/* Right Section - Navigation Links */}

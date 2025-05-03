@@ -9,14 +9,19 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     loginuser: (state, action) => {
-      console.log("user Data Received in Redux:", action.payload); 
       state.user = action.payload;
     },
     logoutuser: (state) => {
       state.user = null;
     },
+    updateUserCity: (state, action) => {
+      if (state.user) {
+        state.user.city = action.payload;
+        
+      }
+    },
   },
 });
 
-export const { loginuser, logoutuser } = userSlice.actions;
+export const { loginuser, logoutuser, updateUserCity } = userSlice.actions;
 export default userSlice.reducer;

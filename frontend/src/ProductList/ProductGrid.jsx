@@ -3,12 +3,14 @@ import axios from "axios";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import WishlistButton from "@/component/WishlistButton";
 import SidebarFilters from "./SidebarFilters";
+import toast from "react-hot-toast";
 
 const ProductGrid = ({ filters }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+    const [cityError, setCityError] = useState(false);
   const [error, setError] = useState(null);
 
 
@@ -37,10 +39,15 @@ const ProductGrid = ({ filters }) => {
         setTotalPages(response.data.totalPages || 1);
         setCurrentPage(response.data.currentPage || 1);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
-        setError("Failed to load products. Please try again later.");
-        setProducts([]);
-        setTotalPages(1); // Prevent pagination from showing if there's an error
+        const is401 = error.response?.status === 404;
+        if(is401){
+          setCityError(true)
+        }else{
+          console.error("Failed to fetch products:", error);
+          setError("Failed to load products. Please try again later.");
+          setProducts([]);
+          setTotalPages(1); // Prevent pagination from showing if there's an error
+        }    
       } finally {
         setLoading(false);
       }
@@ -123,8 +130,11 @@ const ProductGrid = ({ filters }) => {
 
   return (
     <div className="p-4">
-
-      {products.length === 0 ? (
+      {cityError ? (
+        <p className="text-center text-gray-500 max-w-7xl mx-auto">
+          This city has no products yet.
+        </p>
+      ) : products.length === 0 ? (
         <div className="text-center text-gray-600 py-10">
           No products found matching your search.
         </div>
@@ -168,20 +178,19 @@ const ProductGrid = ({ filters }) => {
                   </Link>
 
                   {product.brand?.image && (
-  <div className=""> {/* Adjusted margin-right */}
-    <img
-      src={product.brand.image}
-      alt={product.brand.name || "Brand"}
-      className="w-20 h-auto object-contain"
-    />
-  </div>
-)}
-
+                    <div className="">
+                      <img
+                        src={product.brand.image}
+                        alt={product.brand.name || "Brand"}
+                        className="w-20 h-auto object-contain"
+                      />
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between mb-2">
                     <div className="ml-3 flex items-center">
                       <div className="flex items-center bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded mr-1">
-                        <span className=" text-xs font-semibold">
+                        <span className="text-xs font-semibold">
                           {product.rating || "0"}
                         </span>
                         <svg
