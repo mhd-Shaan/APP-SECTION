@@ -9,22 +9,24 @@ import "slick-carousel/slick/slick-theme.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import WishlistButton from "./WishlistButton";
 import AddToCartButton from "./Cartlogic";
+import { useSelector } from "react-redux";
 
 const NextArrow = ({ onClick }) => (
+
   <div
     onClick={onClick}
-    className="z-20 absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center cursor-pointer border border-gray-200 hover:bg-gray-50 transition-all"
+    className="z-20 absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-md flex items-center justify-center cursor-pointer border border-gray-200 hover:bg-gray-50 transition-all"
   >
-    <ChevronRight className="w-5 h-5 text-gray-600" />
+    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
   </div>
 );
 
 const PrevArrow = ({ onClick }) => (
   <div
     onClick={onClick}
-    className="z-20 absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center cursor-pointer border border-gray-200 hover:bg-gray-50 transition-all"
+    className="z-20 absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-md flex items-center justify-center cursor-pointer border border-gray-200 hover:bg-gray-50 transition-all"
   >
-    <ChevronLeft className="w-5 h-5 text-gray-600" />
+    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
   </div>
 );
 
@@ -32,6 +34,8 @@ const ProductSlider = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
+
 
   const fetchProducts = async () => {
     try {
@@ -63,16 +67,22 @@ const ProductSlider = () => {
     prevArrow: <PrevArrow />,
     responsive: [
       { 
+        breakpoint: 1280,
+        settings: {
+          slidesToShow: Math.min(products.length, 4),
+        }
+      },
+      { 
         breakpoint: 1024, 
         settings: { 
-          slidesToShow: 3,
+          slidesToShow: Math.min(products.length, 3),
           arrows: true
         } 
       },
       { 
         breakpoint: 768, 
         settings: { 
-          slidesToShow: 2,
+          slidesToShow: Math.min(products.length, 2),
           arrows: false
         } 
       },
@@ -80,7 +90,9 @@ const ProductSlider = () => {
         breakpoint: 480, 
         settings: { 
           slidesToShow: 1,
-          arrows: false
+          arrows: false,
+          centerMode: true,
+          centerPadding: "20px"
         } 
       },
     ],
@@ -97,11 +109,11 @@ const ProductSlider = () => {
   };
 
   return (
-    <section className="py-12 px-4 bg-white relative">
+    <section className="py-8 sm:py-12 px-4 sm:px-6 bg-white relative">
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm">
+            <div key={i} className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
               <Skeleton variant="rectangular" width="100%" height={150} />
               <Skeleton height={30} />
               <Skeleton width="60%" />
@@ -111,15 +123,15 @@ const ProductSlider = () => {
           ))}
         </div>
       ) : products.length > 0 ? (
-        <div className="max-w-7xl mx-auto relative">
+        <div className="max-w-7xl mx-auto relative px-2 sm:px-4">
           <Slider {...settings}>
             {products.map((item, i) => (
-              <div key={i} className="px-2">
+              <div key={i} className="px-1 sm:px-2">
                 <div
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 min-h-[400px] flex flex-col justify-between relative cursor-pointer"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-3 sm:p-4 min-h-[380px] sm:min-h-[400px] flex flex-col justify-between relative cursor-pointer"
                   onClick={() => handleProductClick(item._id)}
                 >
-                  <div className="h-40 flex justify-center items-center mb-4">
+                  <div className="h-32 sm:h-40 flex justify-center items-center mb-3 sm:mb-4">
                     <img
                       src={item.images[0] || "/placeholder-image.png"}
                       alt={item.productName}
@@ -128,14 +140,14 @@ const ProductSlider = () => {
                   </div>
 
                   <div className="flex-grow">
-                    <h3 className="text-base font-semibold text-gray-800 text-center line-clamp-1">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-800 text-center line-clamp-1">
                       {item.productName}
                     </h3>
-                    <p className="text-sm text-gray-500 text-center mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 text-center mt-1">
                       SKU#: {item.productId}
                     </p>
 
-                    <div className="flex justify-center">
+                    <div className="flex justify-center text-sm sm:text-base">
                       {renderRatingStars(item.rating)}
                     </div>
 
@@ -144,26 +156,26 @@ const ProductSlider = () => {
                         <img
                           src={item.brand.image}
                           alt={item.brand.name}
-                          className="w-24 h-10 object-contain"
+                          className="w-20 sm:w-24 h-8 sm:h-10 object-contain"
                         />
                       </div>
                     )}
 
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-xl font-bold text-gray-900">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mt-2 sm:mt-3">
+                      <span className="text-lg sm:text-xl font-bold text-gray-900">
                         ₹{item.price}
                       </span>
-                      <span className="text-sm text-gray-400 line-through">
-                        ₹{item.mrp }
+                      <span className="text-xs sm:text-sm text-gray-400 line-through">
+                        ₹{item.mrp}
                       </span>
-                      <span className="text-xs text-white bg-red-500 px-2 py-1 rounded">
-                        {item.discount}
+                      <span className="text-xs text-white bg-red-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                        {item.discount}%
                       </span>
                     </div>
                   </div>
 
                   <div
-                    className="flex items-center justify-center gap-2 mt-4"
+                    className="flex items-center justify-center gap-2 mt-3 sm:mt-4"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <AddToCartButton productId={item._id} />

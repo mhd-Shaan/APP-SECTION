@@ -36,6 +36,10 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'brands',
     },
+    store:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Stores',
+    },
     productId: {
       type: String,
       required: true,

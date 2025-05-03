@@ -11,11 +11,17 @@ const ProductGrid = ({ filters }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState(null);
 
+
+
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const query = searchParams.get("q");
+  const city = searchParams.get("city");
+
   const page = parseInt(searchParams.get("page")) || 1;
+
+  
 
   
 
@@ -24,7 +30,7 @@ const ProductGrid = ({ filters }) => {
       setLoading(true);
       try {
         const response = await axios.get("http://localhost:5000/searchview", {
-          params: { search: query, page,filters },
+          params: { search: query, page,filters,city },
         });
 
         setProducts(response.data.products || []);

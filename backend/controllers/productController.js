@@ -6,6 +6,7 @@ import Product from "../models/productschema.js";
 import SubCategory from "../models/SubCatgoery.js";
 import Wishlist from "../models/wishlistSchema.js";
 import mongoose from "mongoose";
+import Stores from "../models/StoreSchema.js";
 
 
 export const productview = async (req, res) => {
@@ -246,9 +247,17 @@ export const addcart = async (req, res) => {
 export const viewCart = async (req, res) => {
   try {
     const userId = req.User._id;
+    
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-
+    const cart = await Cart.findOne({ user: userId })
+    .populate({
+      path: "items.product",
+      populate: {
+        path: "brand", 
+        select: "name image"
+      }
+    });
+  
     if (!cart || cart.items.length === 0) {
       return res
         .status(200)
@@ -262,28 +271,29 @@ export const viewCart = async (req, res) => {
   }
 };
 
-// export const updateCartItem = async (req, res) => {
-//   try {
-//     const userId = req.User._id;
-//     const itemId = req.params.itemId;
-//     const { quantity } = req.body;
+export const updateCartItem = async (req, res) => {
+  try {
+    const userId = req.User._id;
+    const itemId = req.params.id;
+    const { quantity } = req.body;
 
-//     const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ user: userId });
+    
 
-//     if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
+    if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-//     const item = cart.items.id(itemId);
-//     if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+    const item = cart.items.id(itemId);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
 
-//     item.quantity = quantity;
-//     await cart.save();
+    item.quantity = quantity;
+    await cart.save();
 
-//     res.status(200).json({ success: true, message: "Cart updated", cart });
-//   } catch (error) {
-//     console.error("Update cart error:", error);
-//     res.status(500).json({ success: false, message: "Internal Server Error" });
-//   }
-// };
+    res.status(200).json({ success: true, message: "Cart updated", cart });
+  } catch (error) {
+    console.error("Update cart error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 export const removeCartItem = async (req, res) => {
   try {
@@ -331,10 +341,9 @@ export const productviewbyid = async (req, res) => {
 
 export const searchquery = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "", filters = {} } = req.query;
+    const { page = 1, limit = 10, search = "", filters = {}, city = "" } = req.query;
     const skip = (page - 1) * limit;
 
-    // Parse filters if sent as a string
     let parsedFilters = filters;
     if (typeof filters === "string") {
       parsedFilters = JSON.parse(filters);
@@ -353,14 +362,32 @@ export const searchquery = async (req, res) => {
       query.category = { $in: categories };
     }
 
-    // Brand name filter — convert names to ObjectIds
+    // Brand filter
     if (Array.isArray(brands) && brands.length > 0) {
       const brandDocs = await Brands.find({ name: { $in: brands } }, "_id");
       const brandIds = brandDocs.map(b => b._id);
       query.brand = { $in: brandIds };
     }
 
+    // City filter — filter products based on store's city
+    if (city) {
+      const cityStores = await Stores.find({ city });
+      console.log('citystore',cityStores);
+      
+      const storeIds = cityStores.map(store => store._id);
+      console.log('storeid',storeIds);
 
+      if (storeIds.length > 0) {
+        query.store = { $in: storeIds };
+      } else {
+        return res.status(200).json({
+          products: [],
+          currentPage: Number(page),
+          totalPages: 0,
+          totalproduct: 0,
+        });
+      }
+    }
 
     // Price filter
     if (minPrice || maxPrice) {
@@ -369,11 +396,13 @@ export const searchquery = async (req, res) => {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
+    // Querying the products
     const totalproduct = await Product.countDocuments(query);
     const products = await Product.find(query)
       .skip(skip)
       .limit(Number(limit))
-      .populate("brand", "name image");
+      .populate("brand", "name image")
+      .populate("store", "city");
 
     res.status(200).json({
       products,
@@ -381,6 +410,7 @@ export const searchquery = async (req, res) => {
       totalPages: Math.ceil(totalproduct / limit),
       totalproduct,
     });
+
   } catch (error) {
     console.log("Error in searchquery:", error);
     res.status(500).json({ error: error.message });

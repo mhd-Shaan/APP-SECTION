@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Navbar from '@/component/Navbar';
@@ -9,6 +9,7 @@ function Cart() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const fetchCart = async () => {
     try {
@@ -75,7 +76,7 @@ function Cart() {
     } catch (error) {
       console.error("Error updating quantity", error);
       toast.error(error.response?.data?.error || 'Failed to update quantity');
-      fetchCart(); // Revert to server state
+      fetchCart();
     }
   };
 
@@ -132,36 +133,51 @@ function Cart() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4 md:space-y-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="space-y-3">
               {cart.map((item) => (
-                <div
-                  key={item._id}
-                  className="border p-4 rounded-lg flex flex-col md:flex-row gap-4 items-start"
-                >
-                  <img
-                    src={item.product?.images?.[0] || '/placeholder-product.jpg'}
-                    alt={item.product?.productName || 'Product image'}
-                    className="w-full md:w-24 h-24 object-cover rounded border"
-                    onError={(e) => {
-                      e.target.src = '/placeholder-product.jpg';
-                    }}
-                  />
-                  <div className="flex-1 w-full">
-                    <h3 className="text-lg font-semibold">
-                      {item.product?.productName || 'Product'}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                      {item.product?.description || 'No description available'}
-                    </p>
-                    <p className="text-sm text-gray-700 font-medium mb-2">
-                      ₹{(item.priceAtAddTime || item.product?.price || 0).toLocaleString()}
-                    </p>
-                    <div className="flex items-center justify-between">
+                <div key={item._id} className="border p-4 rounded-lg flex flex-col md:flex-row gap-4">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={item.product?.images?.[0] || '/placeholder-product.jpg'}
+                      alt={item.product?.productName || 'Product image'}
+                      className="w-24 h-24 object-cover rounded border cursor-pointer"
+                      onClick={() => navigate(`/product-details/${item.product?._id}`)}
+                      onError={(e) => {
+                        e.target.src = '/placeholder-product.jpg';
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-semibold hover:text-yellow-600 cursor-pointer"
+                            onClick={() => navigate(`/product/${item.product?._id}`)}>
+                          {item.product?.productName || 'Product'}
+                        </h3>
+                        {item.product?.brand?.image && (
+                          <img
+                            src={item.product.brand.image}
+                            alt={item.product.brand.name || "Brand"}
+                            className="w-20 h-6 object-contain mt-1"
+                          />
+                        )}
+                        <p className="text-sm text-gray-700 font-medium mt-1">
+                          ₹{(item.priceAtAddTime || item.product?.price || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleRemove(item._id)}
+                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleQuantityChange(item._id, -1)}
-                          className="px-3 py-1 bg-gray-200 rounded-lg text-lg hover:bg-gray-300 transition-colors"
+                          className="px-2 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300"
                           disabled={item.localQuantity <= 1}
                         >
                           -
@@ -169,37 +185,31 @@ function Cart() {
                         <span className="min-w-[20px] text-center">{item.localQuantity}</span>
                         <button
                           onClick={() => handleQuantityChange(item._id, 1)}
-                          className="px-3 py-1 bg-gray-200 rounded-lg text-lg hover:bg-gray-300 transition-colors"
+                          className="px-2 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300"
                         >
                           +
                         </button>
                       </div>
-                      <button
-                        onClick={() => handleRemove(item._id)}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        Remove
-                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="border-t pt-6 mt-6">
+            <div className="border-t pt-4 mt-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-semibold">Order Summary</h3>
-                <div className="text-xl font-bold">
+                <h3 className="text-lg font-semibold">Order Summary</h3>
+                <div className="text-lg font-bold">
                   ₹{totalPrice.toLocaleString()}
                 </div>
               </div>
-              <div className="mt-6 space-y-4">
-                <button className="w-full py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium">
+              <div className="mt-4 space-y-2">
+                <button className="w-full py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-medium">
                   Proceed to Checkout
                 </button>
                 <Link 
                   to="/products" 
-                  className="block w-full py-3 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="block w-full py-2 text-center border border-gray-300 rounded hover:bg-gray-50 font-medium text-sm"
                 >
                   Continue Shopping
                 </Link>

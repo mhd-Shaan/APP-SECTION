@@ -1,7 +1,7 @@
 import express from 'express';
 import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword, CityAdding, ViewCity} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
-import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, viewCart } from '../controllers/productController.js';
+import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, updateCartItem, viewCart } from '../controllers/productController.js';
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.get('/viewwishlist',protectRouteuser,showwishlist)
 router.delete('/deletewishlist/:id',protectRouteuser, deletewishlist);
 router.post('/addcart',protectRouteuser,addcart)
 router.get('/viewcart',protectRouteuser,viewCart)
-// router.put('/updatecart/:id',protectRouteuser,updateCartItem)
+router.put('/updatecart/:id',protectRouteuser,updateCartItem)
 router.delete('/deletecart/:id',protectRouteuser,removeCartItem)
 router.get('/productdetails/:id',productviewbyid)
 

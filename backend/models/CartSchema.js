@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const cartItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product", // Make sure this matches your Product model
     required: true,
+  },
+  brand:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"brands"
   },
   quantity: {
     type: Number,

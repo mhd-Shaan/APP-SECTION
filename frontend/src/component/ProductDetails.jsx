@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Star, Heart, Share2, ChevronLeft } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
@@ -17,7 +17,10 @@ export default function ProductDetails() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +47,34 @@ export default function ProductDetails() {
 
   const handleImageSelect = (index) => {
     setSelectedImage(index);
+  };
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    
+    setCartLoading(true);
+    
+    try {
+      await axios.post(
+        'http://localhost:5000/addcart',
+        { productId: product._id, quantity },
+        { withCredentials: true }
+      );
+      setAddedToCart(true);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        navigate('/login');
+      } else {
+        console.log('Error adding to cart:', error);
+      }
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    await handleAddToCart();
+    navigate('/cart');
   };
 
   if (loading) {
@@ -241,10 +272,21 @@ export default function ProductDetails() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Button className="flex-1 py-6 text-lg" disabled={product.stockQuantity <= 0}>
-                Add to Cart
+              <Button 
+                className="flex-1 py-6 text-lg" 
+                disabled={product.stockQuantity <= 0 || addedToCart}
+                onClick={handleAddToCart}
+                loading={cartLoading}
+              >
+                {cartLoading ? "Adding..." : addedToCart ? "Added to Cart" : "Add to Cart"}
               </Button>
-              <Button variant="outline" className="flex-1 py-6 text-lg" disabled={product.stockQuantity <= 0}>
+              <Button 
+                variant="outline" 
+                className="flex-1 py-6 text-lg" 
+                disabled={product.stockQuantity <= 0}
+                onClick={handleBuyNow}
+                loading={cartLoading}
+              >
                 Buy Now
               </Button>
             </div>
