@@ -3,7 +3,7 @@ import axios from "axios";
 import Slider from "react-slick";
 import toast from "react-hot-toast";
 import { Skeleton } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -38,6 +38,8 @@ const ProductSlider = () => {
   const [cityError, setCityError] = useState(false);
   const { user } = useSelector((state) => state.user);
   const hasShownCityError = useRef(false);
+  
+
 
 
   const city = user?.city

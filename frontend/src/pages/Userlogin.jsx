@@ -40,6 +40,7 @@ export default function UserLogin() {
       toast.success("Welcome back!");
       dispatch(loginuser(response.data));
       navigate("/home");
+      window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.error || "Login failed");
     }

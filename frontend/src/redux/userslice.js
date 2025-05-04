@@ -16,7 +16,9 @@ const userSlice = createSlice({
     },
     updateUserCity: (state, action) => {
       if (state.user) {
+      
         state.user.city = action.payload;
+        
         
       }
     },

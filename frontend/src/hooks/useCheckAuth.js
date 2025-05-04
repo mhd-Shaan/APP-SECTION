@@ -14,11 +14,13 @@ function useCheckAuth() {
           withCredentials: true,
         });
 
+        
+
         if (res.status === 200) {
           dispatch(loginuser(res.data));
           
           if (res.data.city) {
-            dispatch(updateUserCity(res.data.city));
+            dispatch(updateUserCity(res.data.city));            
           }
         } else {
           dispatch(logoutuser());

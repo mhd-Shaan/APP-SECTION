@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link, useParams } from "react-router-dom";
 import WishlistButton from "@/component/WishlistButton";
 import SidebarFilters from "./SidebarFilters";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const ProductGrid = ({ filters }) => {
   const [products, setProducts] = useState([]);
@@ -13,17 +14,28 @@ const ProductGrid = ({ filters }) => {
     const [cityError, setCityError] = useState(false);
   const [error, setError] = useState(null);
 
+  
+
+
 
 
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const query = searchParams.get("q");
-  const city = searchParams.get("city");
+  const brand = searchParams.get("b");
+  const subcategories = searchParams.get("c");
+
+
+  
+  
+    const { user } = useSelector((state) => state.user);
+  
   
 
   const page = parseInt(searchParams.get("page")) || 1;
 
+  
   
 
   
@@ -31,10 +43,13 @@ const ProductGrid = ({ filters }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      
       try {
         const response = await axios.get("http://localhost:5000/searchview", {
-          params: { search: query, page,filters,city },
+  params: { search: query, page,filters,city:user?.city, brand,subcategories},
         });
+
+        
 
         setProducts(response.data.products || []);
         setTotalPages(response.data.totalPages || 1);

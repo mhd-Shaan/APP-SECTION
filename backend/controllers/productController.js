@@ -39,6 +39,8 @@ export const productview = async (req, res) => {
       }
     }
 
+   
+
 
 
     // // Price filter
@@ -399,8 +401,10 @@ export const productviewbyid = async (req, res) => {
 
 export const searchquery = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "", filters = {}, city = "" } = req.query;
+    const { page = 1, limit = 10, search = "", filters = {}, city = "",brand='',subcategories='' } = req.query;
     const skip = (page - 1) * limit;
+
+    
     
 
     let parsedFilters = filters;
@@ -416,6 +420,16 @@ export const searchquery = async (req, res) => {
       query.productName = { $regex: search, $options: "i" };
     }
 
+
+    if(brand){
+      query.brand = brand; // if you're storing brand as an ObjectId, adjust accordingly
+    }
+
+    if(subcategories){
+      query.subcategory = subcategories; // if you're storing brand as an ObjectId, adjust accordingly
+    }
+
+    
     // Category filter
     if (Array.isArray(categories) && categories.length > 0) {
       query.category = { $in: categories };
@@ -462,6 +476,7 @@ export const searchquery = async (req, res) => {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
     
+
 
     // Querying the products
     const totalproduct = await Product.countDocuments(query);

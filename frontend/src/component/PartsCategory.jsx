@@ -5,14 +5,17 @@ import { FreeMode, Mousewheel } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/free-mode";
 import "swiper/css/mousewheel";
+import { useNavigate } from "react-router-dom";
 
 const PartsCategory = () => {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null); // Track selected subcategory
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [products, setProducts] = useState([]); // State to store products of the selected subcategory
+  const navigate = useNavigate()
 
   // Fetch categories and auto-select first category
   useEffect(() => {
@@ -50,11 +53,34 @@ const PartsCategory = () => {
     }
   };
 
+  // Fetch products for selected subcategory
+  // const fetchProductsForSubCategory = async (subcategoryId) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:5000/products`, {
+  //       params: { subcategoryId },
+  //     });
+  //     setProducts(response.data.products || []);
+  //   } catch (error) {
+  //     console.error("Error fetching products for subcategory:", error);
+  //   }
+  // };
+
   // When category button is clicked
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId);
+    setSelectedSubCategoryId(null); // Reset selected subcategory
+    setProducts([]); // Clear previously fetched products
     setCurrentPage(1);
     fetchSubCategories(categoryId, 1);
+  };
+
+  // When subcategory is clicked
+  const handleSubCategoryClick = (subcategoryId) => {
+    
+    navigate(`/search?c=${subcategoryId}`);
+
+    // setSelectedSubCategoryId(subcategoryId);
+    // fetchProductsForSubCategory(subcategoryId); // Fetch products for selected subcategory
   };
 
   return (
@@ -121,7 +147,12 @@ const PartsCategory = () => {
                     className="w-14 h-14 object-contain mb-2"
                   />
                 )}
-                <span className="text-sm font-medium">{sub.name}</span>
+                <span
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => handleSubCategoryClick(sub._id)} // Handle subcategory click
+                >
+                  {sub.name}
+                </span>
               </div>
             ))}
           </div>
@@ -173,6 +204,39 @@ const PartsCategory = () => {
       {selectedCategoryId && subCategories.length === 0 && (
         <div className="text-center text-gray-400 mt-10 font-medium text-lg">
           🚧 Subcategories coming soon...
+        </div>
+      )}
+
+      {/* PRODUCTS SECTION */}
+      {selectedSubCategoryId && products.length > 0 && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">PRODUCTS</h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {products.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+              >
+                {product.image && (
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-14 h-14 object-contain mb-2"
+                  />
+                )}
+                <span className="text-sm font-medium">{product.name}</span>
+                <span className="text-xs text-gray-600">{product.price}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* IF NO PRODUCTS FOR SELECTED SUBCATEGORY */}
+      {selectedSubCategoryId && products.length === 0 && (
+        <div className="text-center text-gray-400 mt-10 font-medium text-lg">
+          🚧 No products available for this subcategory...
         </div>
       )}
     </div>

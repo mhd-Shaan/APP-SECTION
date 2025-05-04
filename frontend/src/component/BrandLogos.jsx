@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 // Brand card component
-const BrandCard = ({ image, name, productCount }) => (
-  <div className="bg-white rounded-2xl shadow-md p-4 text-center hover:shadow-lg transition border border-gray-100">
+const BrandCard = ({ id, image, name, productCount, onClick }) => (
+  <div
+    onClick={() => onClick(id)}
+    className="bg-white rounded-2xl shadow-md p-4 text-center hover:shadow-lg transition border border-gray-100 cursor-pointer"
+  >
     <img src={image} alt={name} className="h-10 mx-auto mb-3 object-contain" />
     <h4 className="font-semibold text-sm mb-1 uppercase">{name}</h4>
     <p className="text-sm text-teal-600 font-medium">
@@ -21,12 +26,15 @@ const BrandGrid = () => {
   const [oemCount, setOemCount] = useState(0);
   const [oesLimit, setOesLimit] = useState(12);
   const [oemLimit, setOemLimit] = useState(12);
+  const { user } = useSelector((state) => state.user);
+  const navigate =useNavigate()
 
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        
-        const res = await axios.get(`http://localhost:5000/brands?oesLimit=${oesLimit}&oemLimit=${oemLimit}`);
+        const res = await axios.get(
+          `http://localhost:5000/brands?oesLimit=${oesLimit}&oemLimit=${oemLimit}`
+        );
         setOEMBrands(res.data.oem || []);
         setOESBrands(res.data.oes || []);
         setOesCount(res.data.oescount || 0);
@@ -41,8 +49,24 @@ const BrandGrid = () => {
     fetchBrands();
   }, [oesLimit, oemLimit]);
 
+  // Handle brand click and fetch products
+  const handleBrandClick = async (brandId) => {
+
+    navigate(`/search?b=${brandId}`);
+    // try {
+    //   const res = await axios.get(`http://localhost:5000/products`, {
+    //     params: { brand: brandId, city: user?.city },
+    //   });
+
+    // } catch (error) {
+    //   console.error("Error fetching products by brand ID:", error);
+    // }
+  };
+
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading brands...</div>;
+    return (
+      <div className="text-center py-10 text-gray-500">Loading brands...</div>
+    );
   }
 
   return (
@@ -55,7 +79,7 @@ const BrandGrid = () => {
             <p className="text-sm text-gray-500">{oesCount} brands available</p>
           </div>
           {oesCount > 12 && (
-            <button 
+            <button
               className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full font-semibold shadow hover:shadow-md transition"
               onClick={() => setOesLimit(oesLimit === 12 ? oesCount : 12)}
             >
@@ -67,9 +91,11 @@ const BrandGrid = () => {
           {OESBrands.map((brand) => (
             <BrandCard
               key={brand._id}
+              id={brand._id}
               image={brand.image}
               name={brand.name}
               productCount={brand.productCount || 100}
+              onClick={handleBrandClick}
             />
           ))}
         </div>
@@ -83,7 +109,7 @@ const BrandGrid = () => {
             <p className="text-sm text-gray-500">{oemCount} brands available</p>
           </div>
           {oemCount > 12 && (
-            <button 
+            <button
               className="bg-pink-100 text-pink-700 px-4 py-2 rounded-full font-semibold shadow hover:shadow-md transition"
               onClick={() => setOemLimit(oemLimit === 12 ? oemCount : 12)}
             >
@@ -95,9 +121,11 @@ const BrandGrid = () => {
           {OEMBrands.map((brand) => (
             <BrandCard
               key={brand._id}
+              id={brand._id}
               image={brand.image}
               name={brand.name}
               productCount={brand.productCount || 100}
+              onClick={handleBrandClick}
             />
           ))}
         </div>
