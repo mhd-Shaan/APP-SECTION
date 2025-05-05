@@ -25,6 +25,8 @@ const ProductGrid = ({ filters }) => {
   const query = searchParams.get("q");
   const brand = searchParams.get("b");
   const subcategories = searchParams.get("c");
+  const vehicleType = searchParams.get("v");
+
 
 
   
@@ -46,7 +48,7 @@ const ProductGrid = ({ filters }) => {
       
       try {
         const response = await axios.get("http://localhost:5000/searchview", {
-  params: { search: query, page,filters,city:user?.city, brand,subcategories},
+  params: { search: query, page,filters,city:user?.city, brand,subcategories,vehicleType},
         });
 
         

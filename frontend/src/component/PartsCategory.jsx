@@ -77,7 +77,7 @@ const PartsCategory = () => {
   // When subcategory is clicked
   const handleSubCategoryClick = (subcategoryId) => {
     
-    navigate(`/search?c=${subcategoryId}`);
+    navigate(`/search?v=${subcategoryId}`);
 
     // setSelectedSubCategoryId(subcategoryId);
     // fetchProductsForSubCategory(subcategoryId); // Fetch products for selected subcategory

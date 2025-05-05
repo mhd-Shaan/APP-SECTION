@@ -1,18 +1,30 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules"; // ✅ Swiper v11+
+import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
-import bike from "../assets/images/two_wheeler 1.png";
-import car from "../assets/images/passenger_car 1.png";
-import threewheeler from "../assets/images/three_wheeler 1.png";
-import lightcommercial from "../assets/images/light_commercial_vehicle 1.png";
-import heavycommercial from "../assets/images/electrical 1.png";
+import TwoWheeler from "../assets/images/two_wheeler 1.png";
+import FourWheeler from "../assets/images/passenger_car 1.png";
+import ThreeWheeler from "../assets/images/three_wheeler 1.png";
+import LightCommercial from "../assets/images/light_commercial_vehicle 1.png";
+import HeavyCommercial from "../assets/images/electrical 1.png";
+import { useNavigate } from "react-router-dom";
 
-const categories = [bike, threewheeler, car, lightcommercial, heavycommercial];
+const categories = [
+  { name: "TwoWheeler", img: TwoWheeler },
+  { name: "ThreeWheeler", img: ThreeWheeler },
+  { name: "FourWheeler", img: FourWheeler },
+  { name: "Light Commercial", img: LightCommercial },
+  { name: "Electrical vehicle ", img: HeavyCommercial },
+];
 
 const VehicleCategory = () => {
+  const navigate = useNavigate()
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/search?v=${categoryName}`);
+  };
+
   return (
     <section className="py-6 px-4 relative">
       <Swiper
@@ -30,13 +42,21 @@ const VehicleCategory = () => {
         }}
         className="relative"
       >
-        {categories.map((img, index) => (
+        {categories.map((category, index) => (
           <SwiperSlide key={index}>
-            <img
-              src={img}
-              alt={`vehicle-${index}`}
-              className="w-full h-56 object-contain rounded-lg shadow"
-            />
+            <div
+              className="cursor-pointer text-center"
+              onClick={() => handleCategoryClick(category.name)}
+            >
+              <img
+                src={category.img}
+                alt={category.name}
+                className="w-full h-56 object-contain rounded-lg shadow hover:scale-105 transition"
+              />
+              <div className="mt-2 text-sm font-medium text-gray-700">
+                {category.name}
+              </div>
+            </div>
           </SwiperSlide>
         ))}
 
