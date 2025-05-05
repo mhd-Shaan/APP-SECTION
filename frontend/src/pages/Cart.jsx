@@ -119,7 +119,7 @@ function Cart() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full pt-20 pb-10">
+      <main className="flex-grow p-4  max-w-7xl mx-auto w-full pt-20 pb-10">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">Your Shopping Cart</h2>
         
         {cart.length === 0 ? (

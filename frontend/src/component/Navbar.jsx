@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -10,6 +10,8 @@ import {
   ChevronDown,
   MapPin,
   Heart,
+  LogOut,
+  Clipboard,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
@@ -33,19 +35,15 @@ const Navbar = () => {
   const [selectedCity, setSelectedCity] = useState(user?.city || "");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [isUpdatingCity, setIsUpdatingCity] = useState(false);
+  // const [menuOpenn, setMenuOpenn] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false); // For profile dropdown
+  const profileRef = useRef(null); // To detect clicks outside
 
-  // Fetch cities on mount
+
   useEffect(() => {
     fetchCities();
   }, []);
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const q = params.get("q");
 
-  //   if (q) {
-  //     navigate(`/search?q=${q}&city=${selectedCity}`, { replace: true });
-  //   }
-  // }, [selectedCity]);
 
 
   const fetchCities = async () => {
@@ -98,6 +96,16 @@ const Navbar = () => {
       navigate(`/search?q=${searchQuery}`);
       setShowResults(false);
       setSearchQuery("");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:5000/logout", {}, { withCredentials: true });
+      toast.success("Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Logout failed!");
     }
   };
 
@@ -241,13 +249,55 @@ const Navbar = () => {
           <Link to="/cart" className="text-black hover:text-yellow-700">
             <ShoppingCart size={20} />
           </Link>
-          <Link to="/profile" className="text-black hover:text-yellow-700">
-            <User size={20} />
-          </Link>
-        </div>
+          <div className="relative" ref={profileRef}>
+            <button
+              className="text-black hover:text-yellow-700 flex items-center space-x-1"
+              onClick={() => setProfileOpen(!profileOpen)}
+            >
+              <User size={22} />
+              <ChevronDown size={16} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                {user ? (
+                  <>
+                    <div className="px-4 py-3 text-sm text-gray-700 border-b">
+                      <p className="font-semibold">{user.name}</p>
+                      <p className="text-gray-500 text-xs">{user.email}</p>
+                    </div>
+                    <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-yellow-50 flex items-center">
+                      <User size={16} className="mr-2" /> My Profile
+                    </Link>
+                    <Link to="/wishlist" className="block px-4 py-2 text-sm hover:bg-yellow-50 flex items-center">
+                      <Heart size={16} className="mr-2" /> Wishlist
+                    </Link>
+                    <Link to="/cart" className="block px-4 py-2 text-sm hover:bg-yellow-50 flex items-center">
+                      <ShoppingCart size={16} className="mr-2" /> Cart
+                    </Link>
+                    <Link to="/orders" className="block px-4 py-2 text-sm hover:bg-yellow-50 flex items-center">
+                      <Clipboard size={16} className="mr-2" /> Orders
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                    >
+                      <LogOut size={16} className="mr-2" /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="block px-4 py-3 text-sm text-center hover:bg-yellow-50">
+                    <LogIn size={16} className="mr-2" /> Login
+                  </Link>
+                )}
+              </div>
+            )}
       </div>
     </div>
-  );
+    </div>
+    </div>
+  )
 };
 
 export default Navbar;

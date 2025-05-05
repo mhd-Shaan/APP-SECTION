@@ -280,3 +280,76 @@ export const ViewCity = async(req,res)=>{
     return res.status(500).json({error});
   }
 }
+
+export const saveemail = async (req, res) => {
+    try {
+      const {existingemail,email,otp}=req.body
+
+      const otpchecking = await OtpVerification.findOne({ existingemail, otpisverfied: true });
+      if (!otpchecking) {
+return res.status(400).json({ error: "Existing email OTP  verification not completed" });
+}
+  
+      if (!email) return res.status(400).json({ error: "Email is required" });
+      if (!otp) return res.status(400).json({ error: "OTP is required" });
+  
+      const otpRecord = await OTPVerification.findOne({ email });
+  
+      if (!otpRecord || otpRecord.expiresAt < new Date()) {
+        return res.status(400).json({ error: "OTP expired. Request a new one." });
+      }
+  
+      if (otpRecord.otp !== otp)
+        return res.status(400).json({ error: "Invalid OTP" });
+
+  
+
+
+      // const emailexist = await Users.findOne(existingemail)
+  
+      const updatedOtp = await Users.findOneAndUpdate(
+        { existingemail }, 
+        { email: email }, 
+        { new: true } 
+      );
+      res.status(200).json({ message: " updatedemail successfully" });
+  
+    } catch (error) {
+      res.status(500).json({ message: "Error verifying OTP." });
+      console.log(error);
+    }
+  }
+
+
+export const Editusers = async (req, res) => {
+  try {
+    const userId = req.User._id
+    const { name } = req.body;
+
+    // Find the admin in the database
+    const User = await Users.findById(userId);
+    if (!User) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Users not found" });
+    }
+
+    
+    if (!name) return res.json({ error: "name is required" });
+
+    if (name) {
+      User.name = name;
+    }
+
+    await User.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Update successful",
+      User,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};

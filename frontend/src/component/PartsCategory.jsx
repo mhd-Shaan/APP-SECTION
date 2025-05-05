@@ -84,7 +84,7 @@ const PartsCategory = () => {
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen">
+    <div className="p-6 bg-white  min-h-[200px]">
       {/* CATEGORY SECTION */}
       <section className="mb-10">
         <div className="flex justify-between items-center mb-6">

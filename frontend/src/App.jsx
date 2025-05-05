@@ -14,6 +14,8 @@ import ProductDetails from "./component/ProductDetails";
 import ForgetPassword from "./pages/ForgetPassword";
 // import SearchPage from "./ProductList/ProductPage";
 import MainLayout from "./component/SearchResults";
+import Profile from "./pages/Profile";
+import UpdateEmail from "./pages/UpdateEmail";
 
 function App() {
   const { loading } = useCheckAuth(); // ✅ Hook now returns loading
@@ -41,6 +43,8 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetails />} />
           <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
           <Route path="/search" element={<MainLayout />} />
+          <Route path="/profile" element={user ?<Profile/>:<Userlogin/>}></Route>
+          <Route path="/update-email" element={<UpdateEmail/>}></Route>
           </Routes>
       </Router>
     </>

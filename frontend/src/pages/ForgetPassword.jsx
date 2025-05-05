@@ -15,9 +15,14 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
+import Navbar from '@/component/Navbar';
+import Footer from '@/component/Footer';
+import { useSelector } from 'react-redux';
 
 function ForgetPassword() {
-  const [email, setEmail] = useState('');
+  const { user } = useSelector((state) => state.user);
+
+  const [email, setEmail] = useState(user?.email || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,6 +32,7 @@ function ForgetPassword() {
   const [openOtpDialog, setOpenOtpDialog] = useState(false);
   const [dialogMessage, setDialogMessage] = useState(null); // Separate message state for dialog
   const navigate = useNavigate();
+  
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -106,6 +112,8 @@ function ForgetPassword() {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 border border-gray-100">
 
@@ -150,7 +158,7 @@ function ForgetPassword() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              disabled={!!user} 
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -339,6 +347,8 @@ function ForgetPassword() {
 
       </div>
     </div>
+    <Footer/>
+    </>
   );
 }
 
