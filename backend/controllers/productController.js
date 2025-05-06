@@ -71,11 +71,6 @@ export const productview = async (req, res) => {
       // totalPages: Math.ceil(totalproduct / limit),
       totalproduct,
     });
-    // const products = await Product.find()
-    //   .populate("brand", "name image")
-    //   .sort({ createdAt: -1 });
-
-    // res.status(200).json({ products });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "error on fetching products" });

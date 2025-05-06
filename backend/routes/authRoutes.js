@@ -1,5 +1,5 @@
 import express from 'express';
-import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword, CityAdding, ViewCity, saveemail, Otpsendemail} from '../controllers/authController.js'
+import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword, CityAdding, ViewCity, saveemail, Otpsendemail, Editusers, handlelogout} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
 import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, updateCartItem, viewCart } from '../controllers/productController.js';
 
@@ -16,9 +16,9 @@ router.post('/existemail-sendotp',Otpsend)
 router.post('/existemail-checkotp',CheckingOtp)
 router.post('/updateemail-sendotp',Otpsendemail)
 router.post('/checking&saveemail',saveemail)
-
-// router.put('/saveupdateemail',protectRouteuser,saveemail)
-// router.post('/updateemail-verify-otp',protectRouteuser, updateEmail);  
+router.put('/update-name',protectRouteuser,Editusers)
+router.post('/logout',protectRouteuser,handlelogout)
+  
 
 router.get('/products',productview)
 router.get('/category',categoryshow)

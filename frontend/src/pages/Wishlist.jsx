@@ -104,7 +104,7 @@ function Wishlist() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow px-4 sm:px-6 lg:px-8 py-4 md:py-8 max-w-7xl mx-auto w-full mt-9">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 py-4 md:py-8 max-w-7xl mx-auto w-full mt-15">
         <div className="flex items-center justify-between mb-6 md:mb-15">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
             Your Wishlist

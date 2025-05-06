@@ -37,10 +37,10 @@ export default function UserLogin() {
         formData,
         { withCredentials: true }
       );
-      toast.success("Welcome back!");
       dispatch(loginuser(response.data));
       navigate("/home");
       window.location.reload();
+      toast.success("Welcome back!");
     } catch (error) {
       toast.error(error.response?.data?.error || "Login failed");
     }

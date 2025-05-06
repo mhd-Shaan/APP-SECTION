@@ -326,19 +326,42 @@ return res.status(400).json({ error: "Existing email OTP  verification not compl
   }
 
 
+  export const Otpsendemail = async(req,res)=>{
+    try {
+      const {email}=req.body
+      if(!email) return res.status(400).json({error:"email is required"})
+  
+        const user = await Users.findOne({email });
+        if (user) {
+          return res.status(404).json({ error: "this email already registred" });
+      }
+      const otpsend = await OTPVerification.findOne({email})
+      if(otpsend){
+        await OTPVerification.deleteOne({ email });
+      }
+      await sendOTP(email,"user");
+      res.status(200).json({ message: "otp sended" });
+  
+    } catch (error) {
+      console.error("Error send otp :", error);
+        res.status(500).json({ error });
+    }
+  }
+
+
 export const Editusers = async (req, res) => {
   try {
     const userId = req.User._id
     const { name } = req.body;
 
-    // Find the admin in the database
+    if(!userId) return res.status(400).json({error:"go and first login"})
+
     const User = await Users.findById(userId);
     if (!User) {
       return res
         .status(404)
         .json({ success: false, message: "Users not found" });
     }
-
     
     if (!name) return res.json({ error: "name is required" });
 
@@ -354,30 +377,22 @@ export const Editusers = async (req, res) => {
       User,
     });
   } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.error("Error updating username:", error);
+    res.status(500).json({error});
   }
 };
 
 
-export const Otpsendemail = async(req,res)=>{
+export const handlelogout = async(req,res)=>{
   try {
-    const {email}=req.body
-    if(!email) return res.status(400).json({error:"email is required"})
-
-      const admin = await Users.findOne({email });
-      if (admin) {
-        return res.status(404).json({ error: "this email already registred" });
-    }
-    const otpsend = await OTPVerification.findOne({email})
-    if(otpsend){
-      await OTPVerification.deleteOne({ email });
-    }
-    await sendOTP(email,"user");
-    res.status(200).json({ message: "otp sended" });
-
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    }); 
+    res.status(200).json({ msg: "Logout successful" });
   } catch (error) {
-    console.error("Error send otp :", error);
-      res.status(500).json({ error });
+    console.error("Error from logout:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 }

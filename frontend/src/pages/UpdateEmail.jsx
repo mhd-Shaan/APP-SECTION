@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Stepper, 
-  Step, 
+import {
+  Card,
+  CardContent,
+  Stepper,
+  Step,
   StepLabel,
   Button,
   TextField,
@@ -11,7 +11,7 @@ import {
   CircularProgress,
   CardHeader
 } from '@mui/material';
-import { CheckCircle, Mail, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Mail, RefreshCw, ShieldCheck, ArrowLeft } from 'lucide-react';
 import Footer from '@/component/Footer';
 import Navbar from '@/component/Navbar';
 import { useSelector } from 'react-redux';
@@ -42,25 +42,25 @@ const UpdateEmail = () => {
 
   const handleSendCurrentOtp = async () => {
     try {
-      setLoading(prev => ({...prev, sendCurrentOtp: true}));
+      setLoading(prev => ({ ...prev, sendCurrentOtp: true }));
       const response = await axios.post('http://localhost:5000/existemail-sendotp', { email: currentEmail });
       setOtpSent(true);
       toast.success(response?.data?.message || `OTP sent to ${currentEmail}`);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to send OTP');
     } finally {
-      setLoading(prev => ({...prev, sendCurrentOtp: false}));
+      setLoading(prev => ({ ...prev, sendCurrentOtp: false }));
     }
   };
 
   const handleVerifyCurrentOtp = async () => {
     if (!currentOtp) return toast.error('Please enter OTP');
-    
+
     try {
-      setLoading(prev => ({...prev, verifyCurrentOtp: true}));
-      const response = await axios.post('http://localhost:5000/existemail-checkotp', { 
+      setLoading(prev => ({ ...prev, verifyCurrentOtp: true }));
+      const response = await axios.post('http://localhost:5000/existemail-checkotp', {
         email: currentEmail,
-        otp: currentOtp 
+        otp: currentOtp
       });
       toast.success(response?.data?.message || 'Email verified successfully');
       setActiveStep(1);
@@ -68,64 +68,67 @@ const UpdateEmail = () => {
     } catch (error) {
       toast.error(error.response?.data?.error || 'Invalid OTP');
     } finally {
-      setLoading(prev => ({...prev, verifyCurrentOtp: false}));
+      setLoading(prev => ({ ...prev, verifyCurrentOtp: false }));
     }
   };
 
   const handleSendNewOtp = async () => {
     if (!newEmail.includes('@')) return toast.error('Please enter a valid email');
-    
+
     try {
-      setLoading(prev => ({...prev, sendNewOtp: true}));
+      setLoading(prev => ({ ...prev, sendNewOtp: true }));
       const response = await axios.post('http://localhost:5000/updateemail-sendotp', { email: newEmail });
       setOtpSent(true);
       toast.success(response?.data?.message || `OTP sent to ${newEmail}`);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to send OTP');
     } finally {
-      setLoading(prev => ({...prev, sendNewOtp: false}));
+      setLoading(prev => ({ ...prev, sendNewOtp: false }));
     }
   };
 
   const handleVerifyNewOtp = async () => {
     if (!newOtp) return toast.error('Please enter OTP');
-    
+
     try {
-      setLoading(prev => ({...prev, verifyNewOtp: true}));
-      const response = await axios.post('http://localhost:5000/checking&saveemail', { 
-        existingemail:currentEmail,
-        email:newEmail,
-        otp: newOtp 
+      setLoading(prev => ({ ...prev, verifyNewOtp: true }));
+      const response = await axios.post('http://localhost:5000/checking&saveemail', {
+        existingemail: currentEmail,
+        email: newEmail,
+        otp: newOtp
       });
       toast.success(response?.data?.message || 'Email updated successfully');
       setActiveStep(3);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to update email');
-      console.log(error);
-      
     } finally {
-      setLoading(prev => ({...prev, verifyNewOtp: false}));
+      setLoading(prev => ({ ...prev, verifyNewOtp: false }));
     }
+  };
+
+  const handleBack = () => {
+    setOtpSent(false);
+    setActiveStep((prevStep) => Math.max(prevStep - 1, 0));
   };
 
   return (
     <>
       <Navbar />
-      <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4 mb-3">
         <Card className="w-full max-w-md bg-white shadow-lg">
-          <CardHeader 
-            title="Update Email Address" 
+          <CardHeader
+            title="Update Email Address"
             subheader="Secure process to change your account email"
             className="border-b"
             titleTypographyProps={{ className: "font-bold text-black" }}
             subheaderTypographyProps={{ className: "text-black" }}
           />
-          
+
           <CardContent className="bg-white">
             <Stepper activeStep={activeStep} alternativeLabel className="mb-8">
               {steps.map((label) => (
                 <Step key={label}>
-                  <StepLabel 
+                  <StepLabel
                     StepIconProps={{
                       style: {
                         color: activeStep >= steps.indexOf(label) ? '#facc15' : '#9ca3af',
@@ -146,15 +149,15 @@ const UpdateEmail = () => {
                   <Mail className="w-5 h-5 text-black" />
                   <Typography className="text-black">{currentEmail}</Typography>
                 </div>
-                
+
                 {!otpSent ? (
                   <Button
                     variant="contained"
                     fullWidth
                     onClick={handleSendCurrentOtp}
                     disabled={loading.sendCurrentOtp}
-                    startIcon={loading.sendCurrentOtp ? 
-                      <CircularProgress size={20} style={{ color: 'black' }} /> : 
+                    startIcon={loading.sendCurrentOtp ?
+                      <CircularProgress size={20} style={{ color: 'black' }} /> :
                       <Mail className="text-black" />
                     }
                     style={{ backgroundColor: '#facc15', color: 'black', fontWeight: 'bold' }}
@@ -176,8 +179,8 @@ const UpdateEmail = () => {
                       fullWidth
                       onClick={handleVerifyCurrentOtp}
                       disabled={loading.verifyCurrentOtp}
-                      startIcon={loading.verifyCurrentOtp ? 
-                        <CircularProgress size={20} style={{ color: 'black' }} /> : 
+                      startIcon={loading.verifyCurrentOtp ?
+                        <CircularProgress size={20} style={{ color: 'black' }} /> :
                         <ShieldCheck className="text-black" />
                       }
                       style={{ backgroundColor: '#facc15', color: 'black', fontWeight: 'bold' }}
@@ -221,6 +224,15 @@ const UpdateEmail = () => {
                 >
                   Continue
                 </Button>
+                <Button
+                  fullWidth
+                  variant="text"
+                  onClick={handleBack}
+                  startIcon={<ArrowLeft className="text-black" />}
+                  style={{ color: '#000', fontWeight: 'bold' }}
+                >
+                  Back
+                </Button>
               </div>
             )}
 
@@ -236,8 +248,8 @@ const UpdateEmail = () => {
                     fullWidth
                     onClick={handleSendNewOtp}
                     disabled={loading.sendNewOtp}
-                    startIcon={loading.sendNewOtp ? 
-                      <CircularProgress size={20} style={{ color: 'black' }} /> : 
+                    startIcon={loading.sendNewOtp ?
+                      <CircularProgress size={20} style={{ color: 'black' }} /> :
                       <Mail className="text-black" />
                     }
                     style={{ backgroundColor: '#facc15', color: 'black', fontWeight: 'bold' }}
@@ -259,8 +271,8 @@ const UpdateEmail = () => {
                       fullWidth
                       onClick={handleVerifyNewOtp}
                       disabled={loading.verifyNewOtp}
-                      startIcon={loading.verifyNewOtp ? 
-                        <CircularProgress size={20} style={{ color: 'black' }} /> : 
+                      startIcon={loading.verifyNewOtp ?
+                        <CircularProgress size={20} style={{ color: 'black' }} /> :
                         <ShieldCheck className="text-black" />
                       }
                       style={{ backgroundColor: '#facc15', color: 'black', fontWeight: 'bold' }}
@@ -279,6 +291,15 @@ const UpdateEmail = () => {
                     </Button>
                   </div>
                 )}
+                <Button
+                  fullWidth
+                  variant="text"
+                  onClick={handleBack}
+                  startIcon={<ArrowLeft className="text-black" />}
+                  style={{ color: '#000', fontWeight: 'bold' }}
+                >
+                  Back
+                </Button>
               </div>
             )}
 

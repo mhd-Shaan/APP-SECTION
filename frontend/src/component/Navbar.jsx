@@ -1,31 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Menu,
-  X,
-  LogIn,
-  ShoppingCart,
-  Search,
-  User,
-  ChevronDown,
-  MapPin,
-  Heart,
-  LogOut,
-  Clipboard,
+  Menu, X, LogIn, ShoppingCart, Search, User, ChevronDown,
+  MapPin, Heart, LogOut, Clipboard,
 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SearchResults from "./SearchResults";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { compose } from "@reduxjs/toolkit";
-import ProductSlider from "./ProductGrid";
-import { loginuser } from "@/redux/userslice";
+import { logoutuser } from "@/redux/userslice.js";
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,16 +25,25 @@ const Navbar = () => {
   const [selectedCity, setSelectedCity] = useState(user?.city || "");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [isUpdatingCity, setIsUpdatingCity] = useState(false);
-  // const [menuOpenn, setMenuOpenn] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false); // For profile dropdown
-  const profileRef = useRef(null); // To detect clicks outside
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
+  const profileRef = useRef(null);
 
   useEffect(() => {
     fetchCities();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
 
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchCities = async () => {
     try {
@@ -57,7 +56,6 @@ const Navbar = () => {
 
   const updateUserCity = async (city) => {
     if (!city) return;
-
     try {
       setIsUpdatingCity(true);
       const { data } = await axios.put(
@@ -78,7 +76,6 @@ const Navbar = () => {
     } finally {
       setIsUpdatingCity(false);
       setShowCityDropdown(false);
-
     }
   };
 
@@ -96,6 +93,7 @@ const Navbar = () => {
       navigate(`/search?q=${searchQuery}`);
       setShowResults(false);
       setSearchQuery("");
+      setMobileSearchOpen(false);
     }
   };
 
@@ -103,6 +101,7 @@ const Navbar = () => {
     try {
       await axios.post("http://localhost:5000/logout", {}, { withCredentials: true });
       toast.success("Logged out successfully!");
+      dispatch(logoutuser());
       navigate("/login");
     } catch (error) {
       toast.error("Logout failed!");
@@ -111,6 +110,47 @@ const Navbar = () => {
 
   return (
     <div className="fixed top-0 left-0 w-full bg-yellow-500 border-b border-yellow-600 shadow-lg z-50">
+      {/* Mobile Search Bar (shown when mobileSearchOpen is true) */}
+      {mobileSearchOpen && (
+        <div className="md:hidden p-3 bg-yellow-500 border-b border-yellow-600">
+          <form onSubmit={handleSearchSubmit} className="flex items-center relative">
+            <button
+              type="button"
+              onClick={() => setMobileSearchOpen(false)}
+              className="mr-2 text-black"
+            >
+              <X size={20} />
+            </button>
+            <input
+              type="text"
+              placeholder="Search for products..."
+              className="flex-grow text-black bg-white rounded-l-full px-4 py-2 outline-none placeholder-gray-500 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => searchQuery && setShowResults(true)}
+            />
+            <button
+              type="submit"
+              className="bg-white text-yellow-600 hover:text-yellow-700 px-3 py-2 rounded-r-full"
+            >
+              <Search size={20} />
+            </button>
+          </form>
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+              <SearchResults
+                results={searchResults}
+                onResultClick={() => {
+                  setShowResults(false);
+                  setSearchQuery("");
+                  setMobileSearchOpen(false);
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="max-w-screen-xl mx-auto flex justify-between items-center px-4 py-3">
         {/* Left Section */}
         <div className="flex items-center space-x-4">
@@ -120,33 +160,75 @@ const Navbar = () => {
                 {menuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-yellow-100 w-64 p-6 space-y-6">
-              {[
-                { name: "Home", path: "/" },
-                { name: "Stores", path: "/stores" },
-                { name: "About", path: "/about" },
-                { name: "Become Seller", path: "/become-seller" },
-              ].map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className="text-black text-lg font-medium hover:text-yellow-600"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {!user && (
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full text-black border-yellow-500"
-                >
-                  <Link to="/login">
-                    <LogIn size={20} className="mr-2" /> Login
+            <SheetContent side="left" className="bg-white w-64 p-6">
+              <div className="flex flex-col space-y-4">
+                {/* Mobile City Dropdown */}
+                <div className="relative mb-4">
+                  <button
+                    onClick={() => setShowCityDropdown(!showCityDropdown)}
+                    className={`flex items-center justify-between w-full bg-white border-2 border-yellow-400 rounded-full px-4 py-1.5 text-black shadow-sm ${
+                      showCityDropdown ? "bg-yellow-50" : "hover:bg-yellow-50"
+                    } ${isUpdatingCity ? "opacity-70 cursor-not-allowed" : ""}`}
+                    disabled={isUpdatingCity}
+                  >
+                    <div className="flex items-center">
+                      <MapPin size={16} className="mr-2 text-yellow-600" />
+                      <span className="truncate text-sm">
+                        {isUpdatingCity ? "Updating..." : selectedCity || "Select City"}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`ml-1 transition-transform ${showCityDropdown ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {showCityDropdown && (
+                    <div className="absolute left-0 w-full bg-white border border-gray-200 rounded-lg mt-1 z-50 max-h-60 overflow-y-auto">
+                      {cities.map((city) => (
+                        <div
+                          key={city._id}
+                          className={`px-4 py-2 hover:bg-yellow-50 cursor-pointer text-sm ${
+                            selectedCity === city.city ? "bg-yellow-100 font-medium" : ""
+                          }`}
+                          onClick={() => handleCityChange(city.city)}
+                        >
+                          <MapPin size={14} className="inline-block mr-2 text-yellow-600" />
+                          {city.city}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {[
+                  { name: "Home", path: "/" },
+                  { name: "Stores", path: "/stores" },
+                  { name: "About", path: "/about" },
+                  { name: "Become Seller", path: "/become-seller" },
+                ].map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="text-black text-lg font-medium hover:text-yellow-600"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.name}
                   </Link>
-                </Button>
-              )}
+                ))}
+                {!user && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="text-black border-yellow-500"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Link to="/login" className="flex items-center">
+                      <LogIn size={20} className="mr-2" /> Login
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -155,9 +237,8 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Search + City Dropdown (Desktop Only) */}
+        {/* Desktop Search and City */}
         <div className="hidden md:flex items-center flex-grow max-w-2xl mx-4">
-          {/* Search Bar */}
           <form onSubmit={handleSearchSubmit} className="flex-grow relative">
             <div className="flex border-2 border-yellow-400 rounded-full px-4 py-1.5 items-center bg-white shadow-sm w-full">
               <input
@@ -185,7 +266,7 @@ const Navbar = () => {
             )}
           </form>
 
-          {/* City Dropdown */}
+          {/* Desktop City Dropdown */}
           <div className="relative ml-3 w-48">
             <button
               onClick={() => setShowCityDropdown(!showCityDropdown)}
@@ -227,6 +308,14 @@ const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Mobile Search Button */}
+          <button
+            className="md:hidden text-black hover:text-yellow-700"
+            onClick={() => setMobileSearchOpen(true)}
+          >
+            <Search size={20} />
+          </button>
+
           <Link
             to="/become-seller"
             className="hidden md:block text-black font-medium hover:text-yellow-700 text-sm"
@@ -249,6 +338,7 @@ const Navbar = () => {
           <Link to="/cart" className="text-black hover:text-yellow-700">
             <ShoppingCart size={20} />
           </Link>
+
           <div className="relative" ref={profileRef}>
             <button
               className="text-black hover:text-yellow-700 flex items-center space-x-1"
@@ -258,7 +348,6 @@ const Navbar = () => {
               <ChevronDown size={16} />
             </button>
 
-            {/* Dropdown Menu */}
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                 {user ? (
@@ -293,11 +382,11 @@ const Navbar = () => {
                 )}
               </div>
             )}
+          </div>
+        </div>
       </div>
     </div>
-    </div>
-    </div>
-  )
+  );
 };
 
 export default Navbar;
