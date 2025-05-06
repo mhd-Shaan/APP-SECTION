@@ -178,10 +178,15 @@ export const CheckingOtp=async(req,res)=>{
   try {
     const {email,otp}=req.body
 
+    console.log(email,otp);
+    
+
     if (!email) return res.status(400).json({ error: "Email is required" });
     if (!otp) return res.status(400).json({ error: "OTP is required" });
 
     const otpRecord = await OTPVerification.findOne({ email });
+    console.log(otpRecord.otp);
+    
 
     if (!otpRecord || otpRecord.expiresAt < new Date()) {
       return res.status(400).json({ error: "OTP expired. Request a new one." });
@@ -285,7 +290,7 @@ export const saveemail = async (req, res) => {
     try {
       const {existingemail,email,otp}=req.body
 
-      const otpchecking = await OtpVerification.findOne({ existingemail, otpisverfied: true });
+      const otpchecking = await OtpVerification.findOne({ email:existingemail, otpisverfied: true });
       if (!otpchecking) {
 return res.status(400).json({ error: "Existing email OTP  verification not completed" });
 }
@@ -308,8 +313,8 @@ return res.status(400).json({ error: "Existing email OTP  verification not compl
       // const emailexist = await Users.findOne(existingemail)
   
       const updatedOtp = await Users.findOneAndUpdate(
-        { existingemail }, 
-        { email: email }, 
+        { email:existingemail }, 
+        {email: email }, 
         { new: true } 
       );
       res.status(200).json({ message: " updatedemail successfully" });
@@ -353,3 +358,26 @@ export const Editusers = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+export const Otpsendemail = async(req,res)=>{
+  try {
+    const {email}=req.body
+    if(!email) return res.status(400).json({error:"email is required"})
+
+      const admin = await Users.findOne({email });
+      if (admin) {
+        return res.status(404).json({ error: "this email already registred" });
+    }
+    const otpsend = await OTPVerification.findOne({email})
+    if(otpsend){
+      await OTPVerification.deleteOne({ email });
+    }
+    await sendOTP(email,"user");
+    res.status(200).json({ message: "otp sended" });
+
+  } catch (error) {
+    console.error("Error send otp :", error);
+      res.status(500).json({ error });
+  }
+}

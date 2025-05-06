@@ -44,7 +44,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
           <Route path="/search" element={<MainLayout />} />
           <Route path="/profile" element={user ?<Profile/>:<Userlogin/>}></Route>
-          <Route path="/update-email" element={<UpdateEmail/>}></Route>
+          <Route path="/update-email" element={user ?<UpdateEmail/>:<Userlogin/>}></Route>
           </Routes>
       </Router>
     </>
