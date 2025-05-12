@@ -39,7 +39,7 @@ function App() {
             path="/home"
             element={user  ? <Home /> : <Userlogin />}/>
           <Route path="/wishlist" element={<Wishlist/>}></Route>
-          <Route path="/cart" element={<Cart/>}></Route>
+          <Route path="/cart" element={user?<Cart/>:<Userlogin/>}></Route>
           <Route path="/product-details/:id" element={<ProductDetails />} />
           <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
           <Route path="/search" element={<MainLayout />} />
