@@ -1,51 +1,72 @@
-import React, { use, useEffect } from "react";
-import Home from "./pages/Home";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Toaster } from "react-hot-toast";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+// Pages & Components
+import Home from "./pages/Home";
 import UserRegister from "./pages/UserRegister";
 import Userlogin from "./pages/Userlogin";
-import useCheckAuth from "./hooks/useCheckAuth"; // ✅ Fixed Hook Name
-import { useSelector } from "react-redux";
-import ProductDetailsWrapper from "./component/ProductGrid";
-
-import { Toaster } from "react-hot-toast";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import ProductDetails from "./component/ProductDetails";
 import ForgetPassword from "./pages/ForgetPassword";
-// import SearchPage from "./ProductList/ProductPage";
 import MainLayout from "./component/SearchResults";
 import Profile from "./pages/Profile";
 import UpdateEmail from "./pages/UpdateEmail";
+import CheckoutPage from "./pages/CheckoutPage"; // ⛳ fixed default import
+import useCheckAuth from "./hooks/useCheckAuth";
+import Checkout from "./pages/Checkout";
+import PaymentPage from "./pages/PaymentPage";
+
+// ✅ Stripe promise outside the component
+const stripePromise = loadStripe("pk_test_51ROUXJFa7eTaeNImKyHNkuEYOPkftv4T2VXmXwDtgtwWMeoKEPi1MKgq5KcG6NDhZkgUCuqAbKELPjtiarQwGqZZ00J4vqqiIr");
 
 function App() {
-  const { loading } = useCheckAuth(); // ✅ Hook now returns loading
+  const { loading } = useCheckAuth();
   const { user } = useSelector((state) => state.user);
 
- 
-
   if (loading) {
-    return <h1>Loading...</h1>; // ✅ Prevent rendering until auth check completes
+    return <h1>Loading...</h1>;
   }
 
   return (
     <>
-          <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-right" reverseOrder={false} />
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={user ? <Home/>:<Userlogin />} />
-          <Route path="/register" element={user ? <Home/>:<UserRegister />} />
-          <Route
-            path="/home"
-            element={user  ? <Home /> : <Userlogin />}/>
-          <Route path="/wishlist" element={<Wishlist/>}></Route>
-          <Route path="/cart" element={user?<Cart/>:<Userlogin/>}></Route>
+          <Route path="/login" element={user ? <Home /> : <Userlogin />} />
+          <Route path="/register" element={user ? <Home /> : <UserRegister />} />
+          <Route path="/home" element={user ? <Home /> : <Userlogin />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/cart" element={user ? <Cart /> : <Userlogin />} />
           <Route path="/product-details/:id" element={<ProductDetails />} />
-          <Route path="/forgot-password" element={<ForgetPassword/>}></Route>
+          <Route path="/forgot-password" element={<ForgetPassword />} />
           <Route path="/search" element={<MainLayout />} />
-          <Route path="/profile" element={user ?<Profile/>:<Userlogin/>}></Route>
-          <Route path="/update-email" element={user ?<UpdateEmail/>:<Userlogin/>}></Route>
-          </Routes>
+          <Route path="/profile" element={user ? <Profile /> : <Userlogin />} />
+          <Route path="/update-email" element={user ? <UpdateEmail /> : <Userlogin />} />
+          
+          {/* ✅ Stripe checkout route wrapped correctly */}
+          <Route path="/addadress" element={user ? <Checkout/> : <Userlogin/>}></Route>
+          <Route path="/payment" element={user ? <PaymentPage/> : <Userlogin/>}></Route>
+
+
+
+          <Route
+            path="/checkout"
+            element={
+              user ? (
+                <Elements stripe={stripePromise}>
+<PaymentPage/>                </Elements>
+              ) : (
+                <Userlogin />
+              )
+            }
+          />
+        </Routes>
       </Router>
     </>
   );

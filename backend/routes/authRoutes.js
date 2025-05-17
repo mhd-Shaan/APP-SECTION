@@ -2,6 +2,7 @@ import express from 'express';
 import {registerUser,verifyOTP,loginUsers,checkAuth, Otpsend, CheckingOtp, updatePassword, CityAdding, ViewCity, saveemail, Otpsendemail, Editusers, handlelogout} from '../controllers/authController.js'
 import {protectRouteuser} from '../middleware/authmiddleware.js'
 import { addcart, addwishlist, brandsshow, categoryshow, deletewishlist, productview, productviewbyid, removeCartItem, searchquery, showwishlist, SubCategoryShow, updateCartItem, viewCart } from '../controllers/productController.js';
+import { addAddress, createOrder, deleteAddress, getUserAddresses, updateAddress } from '../controllers/Stripecontroller.js';
 
 const router = express.Router();
 
@@ -39,5 +40,12 @@ router.put('/passwordupdate',updatePassword)
 router.get('/searchview',searchquery)
 
 
+router.post('/create-payment-intent',createOrder)
+
+
+router.post("/addaddress",protectRouteuser , addAddress);
+router.get("/viewaddress", protectRouteuser, getUserAddresses);
+router.put("/updateaddress:id", protectRouteuser, updateAddress);
+router.delete("/deleteaddress:id", protectRouteuser, deleteAddress);
 export default router;
 

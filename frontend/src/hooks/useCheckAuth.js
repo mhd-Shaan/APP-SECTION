@@ -14,6 +14,7 @@ function useCheckAuth() {
           withCredentials: true,
         });
 
+console.log(res.data);
         
 
         if (res.status === 200) {

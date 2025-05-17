@@ -109,6 +109,9 @@ export const loginUsers = async (req, res) => {
 
     const match = await comparePassword(password, user.password);
     if (!match) res.status(400).json({ error: "Enter correct password" });
+    const userWithAddresses = await Users.findOne({email}).populate("addresses");
+    
+
 
     jwt.sign({ id: user.id }, process.env.jwt_SECRET, {}, (err, token) => {
       if (err) throw err;
@@ -127,6 +130,7 @@ export const loginUsers = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          userWithAddresses
         },
         token,
       });

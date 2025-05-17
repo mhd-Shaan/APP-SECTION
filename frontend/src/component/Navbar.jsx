@@ -233,7 +233,8 @@ const Navbar = () => {
           </Sheet>
 
           <Link to="/" className="text-black font-extrabold text-xl sm:text-2xl">
-            Sparemart
+          
+          SpareMart
           </Link>
         </div>
 

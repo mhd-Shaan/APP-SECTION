@@ -9,6 +9,7 @@ function Cart() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
   const navigate = useNavigate();
 
   const fetchCart = async () => {
@@ -18,7 +19,7 @@ function Cart() {
       const res = await axios.get('http://localhost:5000/viewcart', {
         withCredentials: true,
       });
-      
+
       if (res.data?.cart?.items) {
         const updatedCart = res.data.cart.items.map((item) => ({
           ...item,
@@ -38,10 +39,13 @@ function Cart() {
   };
 
   useEffect(() => {
-    fetchCart();    
+    fetchCart();
   }, []);
 
   const handleRemove = async (itemId) => {
+    const confirm = window.confirm("Are you sure you want to remove this item?");
+    if (!confirm) return;
+
     try {
       await axios.delete(`http://localhost:5000/deletecart/${itemId}`, {
         withCredentials: true,
@@ -60,7 +64,7 @@ function Cart() {
         ? { ...item, localQuantity: Math.max(1, item.localQuantity + delta) }
         : item
     );
-    
+
     setCart(updatedCart);
 
     try {
@@ -85,6 +89,12 @@ function Cart() {
     return sum + price * item.localQuantity;
   }, 0);
 
+  const handleCheckout = () => {
+    setLoadingCheckout(true);
+    navigate('/addadress', { state: { amount: totalPrice } });
+  };
+  
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -103,7 +113,7 @@ function Cart() {
         <Navbar />
         <div className="flex-grow p-4 flex flex-col items-center justify-center">
           <div className="text-xl text-red-500 mb-4">{error}</div>
-          <button 
+          <button
             onClick={fetchCart}
             className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
           >
@@ -119,14 +129,14 @@ function Cart() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow p-4  max-w-7xl mx-auto w-full pt-20 pb-10">
+      <main className="flex-grow p-4 max-w-7xl mx-auto w-full pt-20 pb-10">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">Your Shopping Cart</h2>
         
         {cart.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-500 text-lg">Your cart is empty.</p>
-            <Link 
-              to="/products" 
+            <Link
+              to="/products"
               className="mt-4 inline-block px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
             >
               Continue Shopping
@@ -151,14 +161,17 @@ function Cart() {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-semibold hover:text-yellow-600 cursor-pointer"
-                            onClick={() => navigate(`/product/${item.product?._id}`)}>
+                        <h3
+                          className="text-lg font-semibold hover:text-yellow-600 cursor-pointer"
+                          onClick={() => navigate(`/product-details/${item.product?._id}`)}
+                        >
                           {item.product?.productName || 'Product'}
                         </h3>
                         {item.product?.brand?.image && (
                           <img
                             src={item.product.brand.image}
                             alt={item.product.brand.name || "Brand"}
+                            onError={(e) => { e.target.src = '/placeholder-brand.jpg' }}
                             className="w-20 h-6 object-contain mt-1"
                           />
                         )}
@@ -204,11 +217,15 @@ function Cart() {
                 </div>
               </div>
               <div className="mt-4 space-y-2">
-                <button className="w-full py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-medium">
-                  Proceed to Checkout
+                <button
+                  className="w-full py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-medium"
+                  onClick={handleCheckout}
+                  disabled={loadingCheckout}
+                >
+                  {loadingCheckout ? 'Processing...' : 'Proceed to Checkout'}
                 </button>
-                <Link 
-                  to="/products" 
+                <Link
+                  to="/products"
                   className="block w-full py-2 text-center border border-gray-300 rounded hover:bg-gray-50 font-medium text-sm"
                 >
                   Continue Shopping
