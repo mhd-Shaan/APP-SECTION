@@ -16,14 +16,19 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/component/Navbar';
 import Footer from '@/component/Footer';
+import { useSelector } from 'react-redux';
 
 const PaymentPage = () => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useSelector((state) => state.user);
+  const addresses = user?.user?.addresses || [];
 
-  // State management
+  console.log(addresses);
+  
+
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -31,14 +36,12 @@ const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [promoCode, setPromoCode] = useState('');
 
-  // Calculate order totals
   const amount = location.state?.amount || 54900; // in paise
   const orderTotal = (amount / 100).toFixed(2);
   const deliveryFee = 40.00;
   const promotionApplied = 140.00;
   const subtotal = (parseFloat(orderTotal) + deliveryFee - promotionApplied).toFixed(2);
 
-  // Fetch payment intent
   useEffect(() => {
     if (!amount) {
       setError('No amount specified');
@@ -70,17 +73,14 @@ const PaymentPage = () => {
     }
   }, [amount, paymentMethod]);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (paymentMethod === 'cod') {
       handleCashOnDelivery();
       return;
     }
 
     if (!stripe || !elements) return;
-
     await handleCardPayment();
   };
 
@@ -136,7 +136,6 @@ const PaymentPage = () => {
           },
           { withCredentials: true }
         );
-        
         toast.success('Payment successful!');
         navigate('/success', { state: { orderId: res.data.orderId } });
       }
@@ -146,7 +145,6 @@ const PaymentPage = () => {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -162,31 +160,26 @@ const PaymentPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
       <div className="container mx-auto px-4 py-8 max-w-4xl mt-12">
-        {/* Main Payment Section */}
         <section className="mb-8">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Secure checkout</CardTitle>
             </CardHeader>
-            
             <CardContent className="space-y-4">
-              {/* Delivery Information */}
               <div className="space-y-2">
                 <h3 className="font-medium text-sm sm:text-base">Delivering to</h3>
                 <p className="text-sm text-gray-600">
-                  {location.state?.address?.street || '432, Example Street'},<br />
-                  {location.state?.address?.city || 'City'}, {location.state?.address?.state || 'STATE'}, {location.state?.address?.pinCode || '670604'}
+                  {addresses?.houseNumber || '432, Example Street'},<br />
+                  {addresses?.city || 'City'}, {addresses?.address || 'kannur kannadiparmba'}, {addresses.pinCode || '670604'}
                 </p>
                 <Button variant="link" className="text-blue-600 p-0 h-auto text-sm">
                   Add delivery instructions
                 </Button>
               </div>
-              
+
               <Separator className="my-4" />
-              
-              {/* Promo Code */}
+
               <div className="space-y-2">
                 <Label className="text-sm sm:text-base">Use a gift card, voucher or promo code</Label>
                 <div className="flex gap-2">
@@ -196,27 +189,18 @@ const PaymentPage = () => {
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                   />
-                  <Button variant="outline" size="sm">
-                    Apply
-                  </Button>
+                  <Button variant="outline" size="sm">Apply</Button>
                 </div>
               </div>
-              
-              {/* Payment Method Selection */}
+
               <div className="space-y-4">
                 <h3 className="font-medium text-sm sm:text-base">Payment method</h3>
-                
-                <RadioGroup 
-                  value={paymentMethod} 
-                  onValueChange={setPaymentMethod}
-                  className="space-y-3"
-                >
-                  {/* Card Payment Option */}
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="card" id="card" />
                     <Label htmlFor="card" className="text-sm sm:text-base">Credit or debit card</Label>
                   </div>
-                  
+
                   {paymentMethod === 'card' && (
                     <div className="ml-6 space-y-3">
                       <div className="border rounded-lg p-3 sm:p-4">
@@ -235,49 +219,31 @@ const PaymentPage = () => {
                       </div>
                     </div>
                   )}
-                  
-                  {/* Cash on Delivery Option */}
+
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="cod" id="cod" />
-                    <Label htmlFor="cod" className="text-sm sm:text-base">Cash on Delivery/Pay on Delivery</Label>
+                    <Label htmlFor="cod" className="text-sm sm:text-base">Cash on Delivery / Pay on Delivery</Label>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-500 ml-6">
-                    Cash, UPI and Cards accepted. <Button variant="link" className="text-blue-600 p-0 h-auto text-xs sm:text-sm">Know more.</Button>
+                    Cash, UPI, and Cards accepted. 
+                    <Button variant="link" className="text-blue-600 p-0 h-auto text-xs sm:text-sm">Know more</Button>
                   </p>
                 </RadioGroup>
               </div>
-              
+
               <Separator className="my-4" />
-              
-              {/* Order Summary */}
+
               <div className="space-y-3">
                 <h3 className="font-medium text-sm sm:text-base">Order Summary</h3>
-                
                 <div className="space-y-2 text-sm sm:text-base">
-                  <div className="flex justify-between">
-                    <span>Items:</span>
-                    <span>${orderTotal}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Delivery:</span>
-                    <span>${deliveryFee.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total:</span>
-                    <span>${(parseFloat(orderTotal) + deliveryFee).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Promotion Applied:</span>
-                    <span className="text-green-600">-${promotionApplied.toFixed(2)}</span>
-                  </div>
+                  <div className="flex justify-between"><span>Items:</span><span>${orderTotal}</span></div>
+                  <div className="flex justify-between"><span>Delivery:</span><span>${deliveryFee.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span>Total:</span><span>${(parseFloat(orderTotal) + deliveryFee).toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span>Promotion Applied:</span><span className="text-green-600">-${promotionApplied.toFixed(2)}</span></div>
                   <Separator className="my-2" />
-                  <div className="flex justify-between font-bold">
-                    <span>Order Total:</span>
-                    <span>${subtotal}</span>
-                  </div>
+                  <div className="flex justify-between font-bold"><span>Order Total:</span><span>${subtotal}</span></div>
                 </div>
-                
-                {/* Submit Button */}
+
                 <Button
                   className="w-full mt-4 bg-yellow-500 hover:bg-yellow-600 text-sm sm:text-base"
                   onClick={handleSubmit}
@@ -285,7 +251,7 @@ const PaymentPage = () => {
                 >
                   {processing ? 'Processing...' : `Place your order - $${subtotal}`}
                 </Button>
-                
+
                 <p className="text-xs text-gray-500 text-center">
                   By placing your order, you agree to our privacy notice and conditions of use.
                 </p>
@@ -299,29 +265,15 @@ const PaymentPage = () => {
           <Card>
             <CardContent className="p-4 sm:p-6">
               <h3 className="font-medium text-sm sm:text-base mb-2">Need help?</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mb-3">
-                Check our help pages or contact us 24x7
+              <p className="text-sm text-gray-600 mb-2">
+                Please contact our customer support or visit our{' '}
+                <Link to="/help" className="text-blue-600 underline">Help Center</Link>.
               </p>
-              
-              <p className="text-xs sm:text-sm mb-3">
-                When your order is placed, we'll send you an e-mail message acknowledging receipt of your order. 
-                If you choose to pay using an electronic payment method (credit card, debit card), 
-                you will be directed to your bank's website to complete your payment.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row sm:gap-4">
-                <Button variant="link" className="text-blue-600 p-0 h-auto text-xs sm:text-sm">
-                  See Return Policy
-                </Button>
-                <Button variant="link" className="text-blue-600 p-0 h-auto text-xs sm:text-sm">
-                  Back to cart
-                </Button>
-              </div>
+              <p className="text-sm text-gray-600">Call us at: <span className="font-medium">+1 800 123 4567</span></p>
             </CardContent>
           </Card>
         </section>
       </div>
-      
       <Footer />
     </div>
   );

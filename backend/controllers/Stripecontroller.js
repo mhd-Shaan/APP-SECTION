@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import order from '../models/OrdersSchema.js';
 import Address from '../models/AddressSchema.js';
+import Users from '../models/userSchema.js';
 
 
 const router = express.Router();
@@ -84,6 +85,10 @@ export const addAddress = async (req, res) => {
       city,
       addressType,
     });
+
+    await Users.findByIdAndUpdate(req.User._id, {
+  $push: { addresses: newAddress._id }
+});
 
     await newAddress.save();
 

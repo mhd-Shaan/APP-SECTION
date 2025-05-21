@@ -22,11 +22,16 @@ import Checkout from "./pages/Checkout";
 import PaymentPage from "./pages/PaymentPage";
 
 // ✅ Stripe promise outside the component
-const stripePromise = loadStripe("pk_test_51ROUXJFa7eTaeNImKyHNkuEYOPkftv4T2VXmXwDtgtwWMeoKEPi1MKgq5KcG6NDhZkgUCuqAbKELPjtiarQwGqZZ00J4vqqiIr");
+const stripePromise = loadStripe(
+  "pk_test_51ROUXJFa7eTaeNImKyHNkuEYOPkftv4T2VXmXwDtgtwWMeoKEPi1MKgq5KcG6NDhZkgUCuqAbKELPjtiarQwGqZZ00J4vqqiIr"
+);
 
 function App() {
   const { loading } = useCheckAuth();
   const { user } = useSelector((state) => state.user);
+  const addresses = user?.user?.addresses || [];
+
+  console.log(addresses);
 
   if (loading) {
     return <h1>Loading...</h1>;
@@ -39,7 +44,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={user ? <Home /> : <Userlogin />} />
-          <Route path="/register" element={user ? <Home /> : <UserRegister />} />
+          <Route
+            path="/register"
+            element={user ? <Home /> : <UserRegister />}
+          />
           <Route path="/home" element={user ? <Home /> : <Userlogin />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/cart" element={user ? <Cart /> : <Userlogin />} />
@@ -47,20 +55,38 @@ function App() {
           <Route path="/forgot-password" element={<ForgetPassword />} />
           <Route path="/search" element={<MainLayout />} />
           <Route path="/profile" element={user ? <Profile /> : <Userlogin />} />
-          <Route path="/update-email" element={user ? <UpdateEmail /> : <Userlogin />} />
-          
-          {/* ✅ Stripe checkout route wrapped correctly */}
-          <Route path="/addadress" element={user ? <Checkout/> : <Userlogin/>}></Route>
-          <Route path="/payment" element={user ? <PaymentPage/> : <Userlogin/>}></Route>
+          <Route
+            path="/update-email"
+            element={user ? <UpdateEmail /> : <Userlogin />}
+          />
 
 
+
+<Route
+  path="/addadress"
+  element={
+    <Elements stripe={stripePromise}>
+      {user ? (
+        addresses && addresses.length > 0 ? <PaymentPage /> : <Checkout />
+      ) : (
+        <Userlogin />
+      )}
+    </Elements>
+  }
+/>
+
+          <Route
+            path="/payment"
+            element={user ? <PaymentPage /> : <Userlogin />}
+          ></Route>
 
           <Route
             path="/checkout"
             element={
               user ? (
                 <Elements stripe={stripePromise}>
-<PaymentPage/>                </Elements>
+                  <PaymentPage />{" "}
+                </Elements>
               ) : (
                 <Userlogin />
               )

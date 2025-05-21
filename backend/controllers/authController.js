@@ -6,6 +6,7 @@ import Tempusers from "../models/tempuserschema.js";
 import jwt from "jsonwebtoken";
 import OtpVerification from "../models/otpschema.js";
 import Location from "../models/LocationSchema.js";
+import Address from "../models/AddressSchema.js";
 
 const { hashPassword, comparePassword } = authHelper;
 
@@ -109,8 +110,6 @@ export const loginUsers = async (req, res) => {
 
     const match = await comparePassword(password, user.password);
     if (!match) res.status(400).json({ error: "Enter correct password" });
-    const userWithAddresses = await Users.findOne({email}).populate("addresses");
-    
 
 
     jwt.sign({ id: user.id }, process.env.jwt_SECRET, {}, (err, token) => {
@@ -122,18 +121,17 @@ export const loginUsers = async (req, res) => {
         sameSite: "Strict", // Helps prevent CSRF attacks
         maxAge: 3600000, // 1 hour expiry
       });
+res.status(200).json({
+  success: true,
+  message: "Login successful",
+  userdetails: {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+  },
+  token,
+});
 
-      res.status(200).json({
-        success: true,
-        message: "Login successful",
-        userdetails: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          userWithAddresses
-        },
-        token,
-      });
     });
   } catch (error) {
     console.log(error);
@@ -144,9 +142,13 @@ export const loginUsers = async (req, res) => {
 
 
 
-export const checkAuth = (req, res) => {
+export const checkAuth = async(req, res) => {
   try {
-    res.status(200).json(req.User);
+
+const user = await Users.findById(req.User._id).populate('addresses');    
+    res.status(200).json({user});
+
+
   } catch (error) {
     console.log("error from checkAuth", error.message);
     res.status(500).json({ msg: error.message });

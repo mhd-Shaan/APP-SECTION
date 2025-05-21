@@ -32,6 +32,7 @@ export default function UserLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      
       const response = await axios.post(
         "http://localhost:5000/loginusers",
         formData,
@@ -42,7 +43,11 @@ export default function UserLogin() {
       window.location.reload();
       toast.success("Welcome back!");
     } catch (error) {
+      console.log('hi');
+      
       toast.error(error.response?.data?.error || "Login failed");
+      console.log(error);
+      
     }
   };
 
