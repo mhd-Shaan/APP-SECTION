@@ -14,15 +14,15 @@ const orderSchema = new mongoose.Schema(
           ref: 'Product',
           required: true,
         },
-        name: { type: String, required: true },
+        name: { type: String },
         image: { type: String },
-        price: { type: Number, required: true },
+        price: { type: Number },
         quantity: { type: Number, required: true },
       },
     ],
     shippingAddress: {
       fullName: { type: String, required: true },
-      mobileNumber: { type: String, required: true },
+      mobileNumber: { type: String},
       pincode: { type: String, required: true },
       flat: { type: String },
       houseNumber: { type: String },
@@ -33,7 +33,7 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: ['Stripe', 'COD'], 
+      enum: ['card', 'cod'], 
     },
     paymentStatus: {
       type: String,
@@ -46,7 +46,7 @@ const orderSchema = new mongoose.Schema(
       paidAt: Date,
     },
     itemsPrice: { type: Number, required: true },
-    taxPrice: { type: Number, required: true },
+    taxPrice: { type: Number},
     shippingPrice: { type: Number, required: true },
     totalPrice: { type: Number, required: true },
 

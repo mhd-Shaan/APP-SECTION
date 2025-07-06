@@ -91,7 +91,8 @@ function Cart() {
 
   const handleCheckout = () => {
     setLoadingCheckout(true);
-    navigate('/addadress', { state: { amount: totalPrice } });
+    navigate('/checkout', { state: { amount: totalPrice ,cartItems: cart,
+} });
   };
   
 

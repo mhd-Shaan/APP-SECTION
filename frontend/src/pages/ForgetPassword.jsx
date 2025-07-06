@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 function ForgetPassword() {
   const { user } = useSelector((state) => state.user);
 
-  const [email, setEmail] = useState(user?.email || '');
+  const [email, setEmail] = useState(user?.user.email || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -331,19 +331,22 @@ function ForgetPassword() {
           </form>
         )}
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Remember your password?{' '}
-          <Button
-            onClick={() => navigate('/login')}
-            sx={{
-              color: '#FFD700',
-              p: 0,
-              textTransform: 'none'
-            }}
-          >
-            Sign in
-          </Button>
-        </div>
+        {!user && (
+  <div className="mt-6 text-center text-sm text-gray-500">
+    Remember your password?{' '}
+    <Button
+      onClick={() => navigate('/login')}
+      sx={{
+        color: '#FFD700',
+        p: 0,
+        textTransform: 'none'
+      }}
+    >
+      Sign in
+    </Button>
+  </div>
+)}
+
 
       </div>
     </div>

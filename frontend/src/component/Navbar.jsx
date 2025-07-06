@@ -14,6 +14,7 @@ import { logoutuser } from "@/redux/userslice.js";
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.user);
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -22,7 +23,7 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const [cities, setCities] = useState([]);
-  const [selectedCity, setSelectedCity] = useState(user?.city || "");
+  const [selectedCity, setSelectedCity] = useState(user?.user.city || "");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [isUpdatingCity, setIsUpdatingCity] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -32,6 +33,7 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchCities();
+    
   }, []);
 
   useEffect(() => {

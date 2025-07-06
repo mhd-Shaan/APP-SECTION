@@ -12,7 +12,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newName, setNewName] = useState(user?.name || '');
+  const [newName, setNewName] = useState(user?.user.name || '');
   const [loading, setLoading] = useState(false);
 
   const handleAction = (title) => {

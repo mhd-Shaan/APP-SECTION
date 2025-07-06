@@ -1,7 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
-import order from '../models/OrdersSchema.js';
+import Order from '../models/OrdersSchema.js';
 import Address from '../models/AddressSchema.js';
 import Users from '../models/userSchema.js';
 
@@ -10,54 +10,69 @@ const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Create order and initiate payment
-export const createOrder = async (req, res) => {
-  const {
-    orderItems,
-    shippingAddress,
-    paymentMethod,
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
-    userId, 
-  } = req.body;
-
+export const createPaymentIntent = async (req, res) => {
   try {
-    // 1. Create Stripe PaymentIntent
+    const { totalPrice } = req.body;
+    
+
+    if (!totalPrice || totalPrice <= 0) {
+      return res.status(400).json({ error: "Invalid total price" });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalPrice * 100), // Stripe uses paise
-      currency: 'inr',
+      amount: Math.round(totalPrice*100),
+      currency: "inr",
       automatic_payment_methods: { enabled: true },
     });
 
-    // 2. Create order in DB with "Pending" payment status
-    const newOrder = new order({
-      user: userId, // or use req.user._id if using auth middleware
+    res.status(200).json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.log("Stripe PaymentIntent Error:", error);
+    res.status(500).json({ error: "Failed to create payment intent" });
+  }
+};
+
+// 2. Create Order for COD or Successful Stripe Payment
+export const createOrder = async (req, res) => {
+  try {
+    const {
       orderItems,
       shippingAddress,
       paymentMethod,
       itemsPrice,
-      taxPrice,
       shippingPrice,
       totalPrice,
-      paymentStatus: 'Pending',
-      paymentIntentId: paymentIntent.id,
+      userId,
+      paymentInfo,
+      paymentStatus,
+    } = req.body;
+
+    
+
+    if (!orderItems || !shippingAddress || !paymentMethod || !totalPrice || !userId) {
+      return res.status(400).json({ error: "Missing order fields" });
+    }
+
+    const order = new Order({
+      user: userId,
+      orderItems,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      shippingPrice,
+      totalPrice,
+      paymentStatus: paymentMethod === "card" ? (paymentStatus || "paid") : "pending",
+      paymentInfo: paymentMethod === "card" && paymentInfo ? paymentInfo : {},
     });
 
-    const savedOrder = await newOrder.save();
+    const createdOrder = await order.save();
 
-    // 3. Return client secret to frontend
-    res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
-      orderId: savedOrder._id,
-    });
+    res.status(201).json({ message: "Order created", orderId: createdOrder._id });
   } catch (error) {
-    console.log('Stripe/Order error:', error);
-    res.status(500).send({ error: 'Order creation or payment failed' });
+    console.log("Order Creation Error:", error);
+    res.status(500).json({ error: "Failed to create order" });
   }
 };
-
-
 
 
 // Add new address
@@ -74,6 +89,8 @@ export const addAddress = async (req, res) => {
       addressType,
     } = req.body;
 
+    console.log(req.body);
+    
     const newAddress = new Address({
       user: req.User._id,
       fullName,
@@ -112,7 +129,11 @@ export const getUserAddresses = async (req, res) => {
 // Update address
 export const updateAddress = async (req, res) => {
   try {
-    const address = await Address.findOne({ _id: req.params.id, user: req.user._id });
+  
+    console.log(req.body);
+    
+    
+    const address = await Address.findOne({ _id: req.params.id, user: req.User._id });
 
     if (!address) return res.status(404).json({ message: "Address not found" });
 
@@ -122,19 +143,41 @@ export const updateAddress = async (req, res) => {
     res.status(200).json({ message: "Address updated", address });
   } catch (error) {
     res.status(500).json({ message: "Failed to update address", error: error.message });
+    console.log(error);
+    
   }
 };
 
 // Delete address
 export const deleteAddress = async (req, res) => {
   try {
-    const address = await Address.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+
+    
+    
+    const address = await Address.findOneAndDelete({ _id: req.params.id, user: req.User._id });
 
     if (!address) return res.status(404).json({ message: "Address not found" });
 
     res.status(200).json({ message: "Address deleted successfully" });
   } catch (error) {
+    console.log(error);
+    
     res.status(500).json({ message: "Failed to delete address", error: error.message });
+  }
+};
+
+
+export const orders = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.User._id }).populate('orderItems.product')
+
+    if (!orders) return res.status(404).json({ message: "orders not found" });
+
+    res.status(200).json({ orders});
+  } catch (error) {
+    console.log(error);
+    
+    res.status(500).json({ message: "Failed to show orders", error: error.message });
   }
 };
 

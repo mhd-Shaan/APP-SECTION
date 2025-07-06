@@ -20,6 +20,7 @@ import CheckoutPage from "./pages/CheckoutPage"; // ⛳ fixed default import
 import useCheckAuth from "./hooks/useCheckAuth";
 import Checkout from "./pages/Checkout";
 import PaymentPage from "./pages/PaymentPage";
+import UserOrders from "./pages/Orders";
 
 // ✅ Stripe promise outside the component
 const stripePromise = loadStripe(
@@ -55,6 +56,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgetPassword />} />
           <Route path="/search" element={<MainLayout />} />
           <Route path="/profile" element={user ? <Profile /> : <Userlogin />} />
+          <Route path="/orders" element={user ? <UserOrders/> : <Userlogin/>}></Route>
           <Route
             path="/update-email"
             element={user ? <UpdateEmail /> : <Userlogin />}
@@ -62,12 +64,16 @@ function App() {
 
 
 
-<Route
-  path="/addadress"
+
+
+          <Route
+  path="/checkout"
   element={
     <Elements stripe={stripePromise}>
       {user ? (
-        addresses && addresses.length > 0 ? <PaymentPage /> : <Checkout />
+        user.user?.addresses && user.user.addresses.length > 0
+          ? <PaymentPage />
+          : <Checkout />
       ) : (
         <Userlogin />
       )}
@@ -75,23 +81,6 @@ function App() {
   }
 />
 
-          <Route
-            path="/payment"
-            element={user ? <PaymentPage /> : <Userlogin />}
-          ></Route>
-
-          <Route
-            path="/checkout"
-            element={
-              user ? (
-                <Elements stripe={stripePromise}>
-                  <PaymentPage />{" "}
-                </Elements>
-              ) : (
-                <Userlogin />
-              )
-            }
-          />
         </Routes>
       </Router>
     </>

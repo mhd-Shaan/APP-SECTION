@@ -1,35 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CardElement } from '@stripe/react-stripe-js';
-import Navbar from '@/component/Navbar';
-import Footer from '@/component/Footer';
-import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Navbar from "@/component/Navbar";
+import Footer from "@/component/Footer";
+import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import useCheckAuth, { checkAuth } from "@/hooks/useCheckAuth";
+import { useDispatch } from "react-redux";
 
-const Checkout = ({ userAddress }) => {
+const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [step, setStep] = useState('summary');
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [address, setAddress] = useState(userAddress || null);
+  const [address, setAddress] = useState(null);
 
-  // Fetch cart from backend or location state
   useEffect(() => {
     const fetchCartData = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/viewcart', {
+        const res = await axios.get("http://localhost:5000/viewcart", {
           withCredentials: true,
         });
         if (res.data?.cart?.items) {
@@ -37,7 +37,7 @@ const Checkout = ({ userAddress }) => {
           calculateTotal(res.data.cart.items);
         }
       } catch (error) {
-        toast.error('Failed to load cart data');
+        toast.error("Failed to load cart data");
       } finally {
         setLoading(false);
       }
@@ -64,30 +64,42 @@ const Checkout = ({ userAddress }) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const newAddress = {
-      fullName: formData.get('fullName'),
-      phone: formData.get('mobile'),
-      pincode: formData.get('pinCode'),
-      houseNumber: formData.get('addressLine1'),
-      address: formData.get('addressLine2'),
-      landmark: formData.get('landmark'),
-      city: formData.get('city'),
+      fullName: formData.get("fullName"),
+      phone: formData.get("mobile"),
+      pincode: formData.get("pinCode"),
+      houseNumber: formData.get("addressLine1"),
+      address: formData.get("addressLine2"),
+      landmark: formData.get("landmark"),
+      city: formData.get("city"),
     };
 
     try {
-      const res = await axios.post(
-        'http://localhost:5000/addaddress',
-        newAddress,
-        { withCredentials: true }
-      );
-      if (res.data?.message) {
-        setAddress(newAddress);
-        setIsAddressDialogOpen(false);
-        toast.success('Address saved successfully');
+      let res;
+      if (address?._id) {
+        // Update existing address
+        res = await axios.put(
+          `http://localhost:5000/updateaddress/${address._id}`,
+          newAddress,
+          { withCredentials: true }
+        );
       } else {
-        toast.error('Failed to save address');
+        // Add new address
+        res = await axios.post(
+          "http://localhost:5000/addaddress",
+          newAddress,
+          { withCredentials: true }
+        );
+      }
+
+      if (res.data?.address) {
+        setAddress(res.data.address); // Ensure it includes _id
+        setIsAddressDialogOpen(false);
+        toast.success("Address saved successfully");
+      } else {
+        toast.error("Failed to save address");
       }
     } catch (err) {
-      toast.error('Error saving address');
+      toast.error("Error saving address");
       console.error(err);
     }
   };
@@ -108,200 +120,158 @@ const Checkout = ({ userAddress }) => {
     <>
       <Navbar />
       <div className="max-w-4xl mx-auto p-4 mt-12">
-        {step === 'summary' && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Secure checkout</h1>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold">Secure checkout</h1>
 
-            {/* Delivery Address */}
-            <section className="border p-4 rounded-lg">
-              <h2 className="text-lg font-semibold mb-4">Delivery address</h2>
-              {address ? (
-                <div className="mb-4">
-                  <p className="font-medium">{address.fullName}</p>
-                  <p>{address.addressLine1}</p>
-                  <p>{address.addressLine2}</p>
-                  <p>
-                    {address.landmark && `${address.landmark}, `}
-                    {address.city}
-                  </p>
-                  <p>PIN: {address.pinCode}</p>
-                  <p>Mobile: {address.mobile}</p>
-                  <Button
-                    variant="outline"
-                    className="mt-2"
-                    onClick={() => setIsAddressDialogOpen(true)}
-                  >
-                    Change address
-                  </Button>
-                </div>
-              ) : (
+          {/* Delivery Address */}
+          <section className="border p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">Delivery address</h2>
+            {address ? (
+              <div className="mb-4">
+                <p className="font-medium">{address.fullName}</p>
+                <p>{address.houseNumber}</p>
+                <p>{address.address}</p>
+                <p>
+                  {address.landmark && `${address.landmark}, `}
+                  {address.city}
+                </p>
+                <p>PIN: {address.pincode}</p>
+                <p>Mobile: {address.phone}</p>
                 <Button
-                  className="bg-yellow-500 text-white hover:bg-yellow-600"
+                  variant="outline"
+                  className="mt-2"
                   onClick={() => setIsAddressDialogOpen(true)}
                 >
-                  + Add a new delivery address
+                  Change address
                 </Button>
-              )}
-            </section>
-
-            {/* Payment Info */}
-            <section className="border p-4 rounded-lg">
-              <h2 className="text-lg font-semibold mb-4">Payment method</h2>
-              <p className="text-sm text-gray-600">
-                Need help? Check our help pages or contact us 24x7.
-              </p>
-            </section>
-
-            {/* Order Summary */}
-            <section className="border p-4 rounded-lg">
-              <h2 className="text-lg font-semibold mb-4">
-                Review items and shipping
-              </h2>
-              <div className="space-y-2">
-                {cartItems.map((item) => (
-                  <div key={item._id} className="flex justify-between">
-                    <span>
-                      {item.product?.productName || 'Product'} × {item.quantity}
-                    </span>
-                    <span>
-                      ₹
-                      {(item.priceAtAddTime || item.product?.price || 0) *
-                        item.quantity}
-                    </span>
-                  </div>
-                ))}
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₹{totalPrice}</span>
-                </div>
-                <div className="flex justify-between font-bold mt-2">
-                  <span>Order Total</span>
-                  <span>₹{totalPrice}</span>
-                </div>
-              </div>
-            </section>
-
-            <Button
-              className="w-full bg-yellow-500 text-white hover:bg-yellow-600"
-              onClick={() => {
-                if (!address) {
-                  toast.error('Please add a delivery address');
-                  return;
-                }
-                setStep('payment');
-              }}
-              disabled={!address}
-            >
-              Proceed to Payment
-            </Button>
-          </div>
-        )}
-
-        {/* Address Modal */}
-        <Dialog
-          open={isAddressDialogOpen}
-          onOpenChange={setIsAddressDialogOpen}
-        >
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>
-                {address ? 'Edit' : 'Add'} delivery address
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddressSubmit}>
-              <div className="grid gap-2">
-                <Input
-                  name="fullName"
-                  placeholder="Full name"
-                  defaultValue={address?.fullName}
-                  required
-                />
-                <Input
-                  name="mobile"
-                  placeholder="Mobile number"
-                  defaultValue={address?.mobile}
-                  required
-                />
-                <Input
-                  name="pinCode"
-                  placeholder="6 digits PIN code"
-                  defaultValue={address?.pinCode}
-                  required
-                />
-                <Input
-                  name="addressLine1"
-                  placeholder="Flat, House no., Building"
-                  defaultValue={address?.addressLine1}
-                  required
-                />
-                <Input
-                  name="addressLine2"
-                  placeholder="Area, Street, Sector"
-                  defaultValue={address?.addressLine2}
-                  required
-                />
-                <Input
-                  name="landmark"
-                  placeholder="Landmark (optional)"
-                  defaultValue={address?.landmark}
-                />
-                <Input
-                  name="city"
-                  placeholder="Town/City"
-                  defaultValue={address?.city}
-                  required
-                />
-              </div>
+            ) : (
               <Button
-                type="submit"
-                className="w-full bg-yellow-500 text-white hover:bg-yellow-600 mt-5"
+                className="bg-yellow-500 text-white hover:bg-yellow-600"
+                onClick={() => setIsAddressDialogOpen(true)}
               >
-                {address ? 'Update' : 'Use this'} address
+                + Add a new delivery address
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            )}
+          </section>
 
-        {/* Payment Step */}
-        {step === 'payment' && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Payment</h1>
-            <div className="mb-4">
-              <h3 className="font-medium">Deliver to:</h3>
-              <p>
-                {address.fullName}, {address.addressLine1}, {address.city} -{' '}
-                {address.pinCode}
-              </p>
+          {/* Order Summary */}
+          <section className="border p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">
+              Review items and shipping
+            </h2>
+            <div className="space-y-2">
+              {cartItems.map((item) => (
+                <div key={item._id} className="flex justify-between">
+                  <span>
+                    {item.product?.productName || "Product"} × {item.quantity}
+                  </span>
+                  <span>
+                    ₹
+                    {(item.priceAtAddTime || item.product?.price || 0) *
+                      item.quantity}
+                  </span>
+                </div>
+              ))}
             </div>
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': { color: '#aab7c4' },
-                  },
-                },
-              }}
-            />
-            <Button
-              className="w-full bg-yellow-500 text-white hover:bg-yellow-600"
-              onClick={() =>
-                navigate('/payment', {
-                  state: {
-                    amount: totalPrice,
-                    address,
-                  },
-                })
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>₹{totalPrice}</span>
+              </div>
+              <div className="flex justify-between font-bold mt-2">
+                <span>Order Total</span>
+                <span>₹{totalPrice}</span>
+              </div>
+            </div>
+          </section>
+
+          <Button
+            className="w-full bg-yellow-500 text-white hover:bg-yellow-600"
+            onClick={async () => {
+              if (!address) {
+                toast.error("Please add a delivery address");
+                return;
               }
-            >
-              Pay ₹{totalPrice}
-            </Button>
-          </div>
-        )}
+
+              await checkAuth(dispatch);
+
+              navigate("/checkout", {
+                state: {
+                  amount: totalPrice,
+                  address,
+                },
+              });
+            }}
+            disabled={!address}
+          >
+            Proceed to Payment
+          </Button>
+        </div>
       </div>
+
+      {/* Address Dialog */}
+      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {address ? "Edit" : "Add"} delivery address
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddressSubmit}>
+            <div className="grid gap-2">
+              <Input
+                name="fullName"
+                placeholder="Full name"
+                defaultValue={address?.fullName}
+                required
+              />
+              <Input
+                name="mobile"
+                placeholder="Mobile number"
+                defaultValue={address?.phone}
+                required
+              />
+              <Input
+                name="pinCode"
+                placeholder="6 digits PIN code"
+                defaultValue={address?.pincode}
+                required
+              />
+              <Input
+                name="addressLine1"
+                placeholder="Flat, House no., Building"
+                defaultValue={address?.houseNumber}
+                required
+              />
+              <Input
+                name="addressLine2"
+                placeholder="Area, Street, Sector"
+                defaultValue={address?.address}
+                required
+              />
+              <Input
+                name="landmark"
+                placeholder="Landmark (optional)"
+                defaultValue={address?.landmark}
+              />
+              <Input
+                name="city"
+                placeholder="Town/City"
+                defaultValue={address?.city}
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-yellow-500 text-white hover:bg-yellow-600 mt-5"
+            >
+              {address ? "Update" : "Use this"} address
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </>
   );

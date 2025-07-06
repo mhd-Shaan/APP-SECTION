@@ -30,7 +30,7 @@ const ProductSlider = () => {
   const [cityError, setCityError] = useState(false);
   const { user } = useSelector((state) => state.user);
   const hasShownCityError = useRef(false);
-  const city = user?.city;
+  const city = user?.user?.city;
 
   const fetchProducts = async () => {
     try {

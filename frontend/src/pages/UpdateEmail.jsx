@@ -21,7 +21,7 @@ import { toast } from 'react-hot-toast';
 const UpdateEmail = () => {
   const { user } = useSelector((state) => state.user);
   const [activeStep, setActiveStep] = useState(0);
-  const [currentEmail, setCurrentEmail] = useState(user?.email || '');
+  const [currentEmail, setCurrentEmail] = useState(user?.user.email || '');
   const [newEmail, setNewEmail] = useState('');
   const [currentOtp, setCurrentOtp] = useState('');
   const [newOtp, setNewOtp] = useState('');
