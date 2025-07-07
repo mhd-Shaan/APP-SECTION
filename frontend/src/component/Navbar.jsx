@@ -356,8 +356,8 @@ const Navbar = () => {
                 {user ? (
                   <>
                     <div className="px-4 py-3 text-sm text-gray-700 border-b">
-                      <p className="font-semibold">{user.name}</p>
-                      <p className="text-gray-500 text-xs">{user.email}</p>
+                      <p className="font-semibold">{user.user.name}</p>
+                      <p className="text-gray-500 text-xs">{user.user.email}</p>
                     </div>
                     <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-yellow-50 flex items-center">
                       <User size={16} className="mr-2" /> My Profile

@@ -144,11 +144,8 @@ res.status(200).json({
 
 export const checkAuth = async(req, res) => {
   try {
-
 const user = await Users.findById(req.User._id).populate('addresses');    
     res.status(200).json({user});
-
-
   } catch (error) {
     console.log("error from checkAuth", error.message);
     res.status(500).json({ msg: error.message });
