@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import Order from '../models/OrdersSchema.js';
 import Address from '../models/AddressSchema.js';
 import Users from '../models/userSchema.js';
+import Product from '../models/productschema.js';
+import Stores from '../models/StoreSchema.js';
 
 
 const router = express.Router();
@@ -32,7 +34,8 @@ export const createPaymentIntent = async (req, res) => {
   }
 };
 
-// 2. Create Order for COD or Successful Stripe Payment
+
+
 export const createOrder = async (req, res) => {
   try {
     const {
@@ -47,32 +50,79 @@ export const createOrder = async (req, res) => {
       paymentStatus,
     } = req.body;
 
-    
-
-    if (!orderItems || !shippingAddress || !paymentMethod || !totalPrice || !userId) {
+    if (!orderItems?.length || !shippingAddress || !paymentMethod || !totalPrice || !userId) {
       return res.status(400).json({ error: "Missing order fields" });
     }
 
+    const validatedOrderItems = [];
+    let storeLocation = null;
+
+    for (const item of orderItems) {
+      // ✅ Populate store to get shopName, city, pickupDetails
+      const product = await Product.findById(item.product).populate("store");
+
+      if (!product)
+        return res.status(400).json({ error: `Product not found: ${item.product}` });
+
+      if (product.stockQuantity < item.quantity)
+        return res.status(400).json({ error: `Insufficient stock for ${product.productName}` });
+
+      // Reduce product stock
+      product.stockQuantity -= item.quantity;
+      await product.save();
+
+      // Push enriched order item
+      validatedOrderItems.push({
+        product: product._id,
+        name: product.productName,
+        image: product.images?.[0] || "",
+        price: product.price,
+        quantity: item.quantity,
+        store: product.store?._id,
+        storeName: product.store?.shopName,
+        storeCity: product.store?.city,
+      });
+
+      // ✅ Safely access pickupDetails.location
+      const pickupDetails = product.store?.pickupDetails?.toObject?.() || product.store?.pickupDetails;
+      
+      if (pickupDetails?.location?.coordinates) {
+        storeLocation = {
+          type: "Point",
+          coordinates: pickupDetails.location.coordinates,
+        };
+      }
+    }
+
+    // ✅ Create the order
     const order = new Order({
       user: userId,
-      orderItems,
+      orderItems: validatedOrderItems,
       shippingAddress,
       paymentMethod,
       itemsPrice,
       shippingPrice,
       totalPrice,
-      paymentStatus: paymentMethod === "card" ? (paymentStatus || "paid") : "pending",
+      paymentStatus: paymentMethod === "card" ? paymentStatus || "paid" : "pending",
       paymentInfo: paymentMethod === "card" && paymentInfo ? paymentInfo : {},
+      storeLocation, // For delivery assignment
     });
 
     const createdOrder = await order.save();
 
-    res.status(201).json({ message: "Order created", orderId: createdOrder._id });
+    res.status(201).json({
+      message: "Order created successfully",
+      orderId: createdOrder._id,
+      orderItems: validatedOrderItems,
+      storeLocation,
+    });
   } catch (error) {
     console.log("Order Creation Error:", error);
-    res.status(500).json({ error: "Failed to create order" });
+    res.status(500).json({ error: error.message || "Failed to create order" });
   }
 };
+
+
 
 
 // Add new address

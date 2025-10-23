@@ -175,7 +175,7 @@ const PaymentPage = () => {
 
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Payment failed");
+      toast.error(err.error || "Payment failed");
     } finally {
       setProcessing(false);
     }
