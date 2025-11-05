@@ -5,7 +5,7 @@ const storeSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    sparse:true
+    sparse: true,
   },
   email: {
     type: String,
@@ -26,12 +26,12 @@ const storeSchema = new mongoose.Schema({
   pannumber: {
     type: String,
   },
-  city:{
-    type:String
+  city: {
+    type: String,
   },
   pickupDetails: {
-    shopName:{
-      type:String,
+    shopName: {
+      type: String,
     },
     pickupCode: {
       type: String,
@@ -39,11 +39,23 @@ const storeSchema = new mongoose.Schema({
     address: {
       type: String,
     },
+    // ✅ Add location for auto-assignment
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [0, 0],
+      },
+    },
   },
   storeDescription: {
     type: String,
   },
-  pdfUrls: [{ type: String }], 
+  pdfUrls: [{ type: String }],
   isBlocked: {
     type: Boolean,
     default: false, // Store is not blocked by default
@@ -59,5 +71,8 @@ const storeSchema = new mongoose.Schema({
   },
 });
 
- const Stores =  mongoose.model("Stores", storeSchema);
- export default Stores
+// ✅ 2dsphere index on store pickup location for geo queries
+storeSchema.index({ "pickupDetails.location": "2dsphere" });
+
+const Stores = mongoose.model("Stores", storeSchema);
+export default Stores;

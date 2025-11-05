@@ -32,6 +32,7 @@ import {
 } from "../controllers/productController.js";
 import {
   addAddress,
+  autoAssignDeliveryBoy,
   createOrder,
   createPaymentIntent,
   deleteAddress,
@@ -76,6 +77,8 @@ router.get("/searchview", searchquery);
 router.post("/create-payment-intent", createPaymentIntent);
 router.post("/create-order", createOrder);
 router.get("/orders",protectRouteuser,orders)
+router.post("/auto-assign/:orderId",protectRouteuser, autoAssignDeliveryBoy);
+
 
 router.post("/addaddress", protectRouteuser, addAddress);
 router.get("/viewaddress", protectRouteuser, getUserAddresses);

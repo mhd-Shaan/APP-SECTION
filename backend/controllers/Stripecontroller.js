@@ -6,6 +6,7 @@ import Address from '../models/AddressSchema.js';
 import Users from '../models/userSchema.js';
 import Product from '../models/productschema.js';
 import Stores from '../models/StoreSchema.js';
+import DeliveryRegistration from "../models/deliveryBoySchema.js";
 
 
 const router = express.Router();
@@ -228,6 +229,73 @@ export const orders = async (req, res) => {
     console.log(error);
     
     res.status(500).json({ message: "Failed to show orders", error: error.message });
+  }
+};
+
+
+
+
+export const autoAssignDeliveryBoy = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    // 1️⃣ Find order
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (!order.storeLocation?.coordinates) {
+      return res.status(400).json({ success: false, message: "Store location missing in order" });
+    }
+    
+
+
+    // 2️⃣ Find nearest available & approved delivery partner
+    const nearestPartner = await DeliveryRegistration.findOne({
+      isOnline: true,
+      isBlocked: false,
+      status: "approved",
+      $expr: { $lt: ["$activeOrdersCount", "$maxActiveOrders"] }, // ✅ fixed comparison
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: order.storeLocation.coordinates, // [lng, lat]
+          },
+          $maxDistance: 10000, // within 10 km
+        },
+      },
+    });
+console.log(nearestPartner);
+
+    if (!nearestPartner) {
+      return res.status(404).json({
+        success: false,
+        message: "No delivery partners available nearby",
+      });
+    }
+
+    // 3️⃣ Assign delivery partner to the order
+    order.assignedPartner = nearestPartner._id;
+    order.assignedAt = new Date();
+    order.orderStatus = "Shipped";
+    await order.save();
+
+    // 4️⃣ Update delivery partner’s active order count
+    nearestPartner.activeOrdersCount += 1;
+    nearestPartner.currentOrder = order._id;
+    await nearestPartner.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Order assigned to ${nearestPartner.fullName}`,
+      partnerId: nearestPartner._id,
+      orderId: order._id,
+    });
+  } catch (error) {
+    console.log("Auto Assign Error:", error);
+    res.status(500).json({ success: false, message: "Failed to auto assign partner" });
   }
 };
 
