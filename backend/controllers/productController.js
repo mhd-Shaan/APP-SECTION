@@ -16,61 +16,34 @@ export const productview = async (req, res) => {
 
     const query = {};
 
-    if (city) {
-      const cityStores = await Stores.find({ city }, '_id');  
+    // If city is not "All Kerala" and it's not empty -> filter by city
+    if (city && city !== "ALL KERALA") {
+      const cityStores = await Stores.find({ city }, "_id");
 
       if (cityStores.length === 0) {
-        return res.status(401).json({ error: "Coming soon" })
+        return res.status(401).json({ error: "Coming soon" });
       }
-      
-      const storeIds = cityStores.map(store => store._id);
+
+      const storeIds = cityStores.map((store) => store._id);
 
       if (storeIds.length > 0) {
         query.store = { $in: storeIds };
-        
-        
-      } else {
-        return res.status(200).json({
-          products: [],
-          currentPage: Number(page),
-          totalPages: 0,
-          totalproduct: 0,
-        });
       }
     }
 
-   
-
-
-
-    // // Price filter
-    // if (minPrice || maxPrice) {
-    //   query.price = {};
-    //   if (minPrice) query.price.$gte = parseFloat(minPrice);
-    //   if (maxPrice) query.price.$lte = parseFloat(maxPrice);
-    // }
-    
-
-    // Querying the products
+    // Fetch total based on query
     const totalproduct = await Product.countDocuments(query);
-    
+
     const products = await Product.find(query)
-      // .skip(skip)
-      // .limit(Number(limit))
       .populate("brand", "name image")
       .populate("store", "city")
       .sort({ createdAt: -1 });
 
-      // if(products <0){
-      //   return res.status(404).json({error:"this city have no products"})
-      // }
-
     res.status(200).json({
       products,
-      // currentPage: Number(page),
-      // totalPages: Math.ceil(totalproduct / limit),
       totalproduct,
     });
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "error on fetching products" });

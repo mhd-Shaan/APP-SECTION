@@ -44,7 +44,9 @@ activeOrdersCount: { type: Number, default: 0 },
   },
 
   // ✅ If currently delivering
-  currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
+currentOrders: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Order" }
+],
 
   createdAt: { type: Date, default: Date.now },
 });

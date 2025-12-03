@@ -23,6 +23,8 @@ const PaymentPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(addresses[0] || null);
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [deliveryType, setDeliveryType] = useState("courier"); // default
+  const [assigningDelivery, setAssigningDelivery] = useState(false); // ⭐ NEW
 
   const amount = location.state?.amount || 0;
   const orderItems = location.state?.cartItems || [];
@@ -30,6 +32,15 @@ const PaymentPage = () => {
   const deliveryFee = 0.0;
   const subtotal = (parseFloat(orderTotal) + deliveryFee).toFixed(2);
 
+  // Check if Quick Delivery is available
+  const isQuickAvailable = () => {
+    if (!selectedAddress || orderItems.length === 0) return false;
+    const userCity = selectedAddress.city?.trim().toLowerCase();
+    const storeCity = user?.user?.city?.trim().toLowerCase();
+    return userCity === storeCity;
+  };
+
+  // Build order payload
   const buildOrderPayload = (paymentIntent = null) => ({
     orderItems: orderItems.map((item) => ({
       product: item.product?._id || item._id,
@@ -44,6 +55,7 @@ const PaymentPage = () => {
     shippingPrice: deliveryFee,
     totalPrice: subtotal,
     userId: user?.user?._id,
+    deliveryType,
     ...(paymentIntent && {
       paymentInfo: {
         id: paymentIntent.id,
@@ -59,10 +71,14 @@ const PaymentPage = () => {
     if (!selectedAddress) return toast.error("Select a delivery address");
 
     setProcessing(true);
+
     try {
       let orderResponse = null;
 
-      // 🟡 CARD PAYMENT FLOW
+      // Show assigning modal for Quick Delivery
+      if (deliveryType === "quick") setAssigningDelivery(true);
+
+      // 🟡 CARD PAYMENT
       if (paymentMethod === "card") {
         const paymentIntentResponse = await axios.post(
           `${API_URL}/create-payment-intent`,
@@ -99,7 +115,7 @@ const PaymentPage = () => {
           toast.success("Payment successful!");
         }
       } 
-      // 🟢 CASH ON DELIVERY FLOW
+      // 🟢 CASH ON DELIVERY
       else {
         const orderPayload = buildOrderPayload();
         orderResponse = await axios.post(`${API_URL}/create-order`, orderPayload, {
@@ -108,28 +124,25 @@ const PaymentPage = () => {
         toast.success("Order placed successfully!");
       }
 
-      // 🚚 AUTO-ASSIGN DELIVERY BOY
-      if (orderResponse?.data?.orderId) {
-        try {
-          await axios.post(
-            `${API_URL}/auto-assign/${orderResponse.data.orderId}`,
-            {},
-            { withCredentials: true }
+      // ⭐ Handle auto-assignment feedback
+      if (deliveryType === "quick") {
+        const assigned = orderResponse.data.partners[0]; // first store
+        if (!assigned?.assigned) {
+          toast.error(
+            "No delivery partner available. Your order is placed and waiting for assignment."
           );
-          toast.success("Delivery partner assigned!");
-        } catch (err) {
-          console.log("Auto-assign error:", err);
-          toast.error("Delivery assignment failed");
+        } else {
+          toast.success(`Delivery partner assigned: ${assigned.partnerName}`);
         }
       }
 
-      // ✅ Redirect to success page
-      navigate("/success", { state: { orderId: orderResponse.data.orderId } });
+      navigate("/success", { state: { orderId: orderResponse.data.orders[0]._id } });
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Payment failed");
+      toast.error(err.response.data.error || "Payment failed");
     } finally {
       setProcessing(false);
+      setAssigningDelivery(false);
     }
   };
 
@@ -146,8 +159,9 @@ const PaymentPage = () => {
           <CardHeader>
             <CardTitle className="text-xl">Checkout</CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-6">
-            {/* 🏠 Address Section */}
+            {/* ADDRESS SECTION */}
             <div className="space-y-3">
               <h3 className="font-medium">Delivery Address</h3>
               {addresses.map((address) => (
@@ -167,9 +181,7 @@ const PaymentPage = () => {
                       <p className="text-sm">Phone: {address.phone}</p>
                     </div>
                     <Button
-                      variant={
-                        selectedAddress?._id === address._id ? "default" : "outline"
-                      }
+                      variant={selectedAddress?._id === address._id ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedAddress(address)}
                     >
@@ -180,7 +192,45 @@ const PaymentPage = () => {
               ))}
             </div>
 
-            {/* 💳 Payment Section */}
+            {/* DELIVERY OPTION SECTION */}
+            <div className="space-y-3">
+              <h3 className="font-medium">Delivery Type</h3>
+
+              {/* QUICK DELIVERY */}
+              <label
+                className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer ${
+                  !isQuickAvailable() ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <input
+                  type="radio"
+                  value="quick"
+                  disabled={!isQuickAvailable()}
+                  checked={deliveryType === "quick"}
+                  onChange={() => isQuickAvailable() && setDeliveryType("quick")}
+                />
+                <div>
+                  <p className="font-semibold">Quick Delivery</p>
+                  <p className="text-sm text-gray-500">Fast delivery inside your city only</p>
+                </div>
+              </label>
+
+              {/* COURIER DELIVERY */}
+              <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer">
+                <input
+                  type="radio"
+                  value="courier"
+                  checked={deliveryType === "courier"}
+                  onChange={() => setDeliveryType("courier")}
+                />
+                <div>
+                  <p className="font-semibold">Courier Delivery</p>
+                  <p className="text-sm text-gray-500">Available anywhere in Kerala</p>
+                </div>
+              </label>
+            </div>
+
+            {/* PAYMENT METHOD */}
             <div className="space-y-3">
               <h3 className="font-medium">Payment Method</h3>
               <div className="flex gap-4">
@@ -197,20 +247,19 @@ const PaymentPage = () => {
                   Cash on Delivery
                 </Button>
               </div>
+
               {paymentMethod === "card" && (
                 <div className="border rounded p-3">
                   <CardElement
                     options={{
-                      style: {
-                        base: { fontSize: "16px", color: "#424770" },
-                      },
+                      style: { base: { fontSize: "16px", color: "#424770" } },
                     }}
                   />
                 </div>
               )}
             </div>
 
-            {/* 🧾 Order Summary */}
+            {/* ORDER SUMMARY */}
             <div className="space-y-2">
               <h3 className="font-medium">Order Summary</h3>
               <div className="flex justify-between">
@@ -228,6 +277,7 @@ const PaymentPage = () => {
               </div>
             </div>
 
+            {/* FINAL BUTTON */}
             <Button
               className="w-full bg-yellow-500 text-white rounded hover:bg-yellow-600"
               onClick={handleSubmit}
@@ -238,6 +288,17 @@ const PaymentPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* 🔵 QUICK DELIVERY LOADING MODAL */}
+      {assigningDelivery && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow text-center max-w-sm mx-auto">
+            <h2 className="text-lg font-semibold mb-2">Assigning Delivery Partner...</h2>
+            <p>Please wait while we find a delivery boy near your location.</p>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

@@ -30,7 +30,13 @@ const orderSchema = new mongoose.Schema({
   totalPrice: { type: Number, required: true },
   isDelivered: { type: Boolean, default: false },
   deliveredAt: Date,
-  orderStatus: { type: String, enum: ["Processing","Shipped","Delivered","Cancelled"], default: "Processing" },
+  orderStatus: { type: String, enum: ["Processing",'Searching for Delivery Partner',"Shipped","Delivered","Cancelled"], default: "Processing" },
+  subOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: "SubOrder" }],
+deliveryType: {
+  type: String,
+  enum: ["quick", "courier"],
+  required: true,
+},
 
   // ✅ Delivery Assignment Tracking
   assignedPartner: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryBoyRegistration" },
